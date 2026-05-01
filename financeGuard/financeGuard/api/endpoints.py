@@ -846,7 +846,7 @@ async def seed_data():
 
 MOCK_CREDIT_DATA: dict[str, dict] = {
     # ── HIGH RISK: active loans at 2 MFIs, 9 recent applications, poor profile
-    "34-567890I89": {
+    "12-654321B34": {
         "full_name": "Panashe Nyawiri",
         "active_loans_elsewhere": 2,
         "outstanding_elsewhere": 4250.0,
