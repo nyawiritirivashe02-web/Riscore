@@ -1298,37 +1298,38 @@ def parse_payslip():
             if 10 <= value < 1000000:
                 return value
         return None
-
 def _extract_national_id(text: str) -> str | None:
-    """
-    Extract Zimbabwe National ID from raw payslip text.
-    Supports formats like:
-      12-654321B34
-      12-654321 B 34
-      12654321B34
-    """
+    """Extract Zimbabwe National ID from payslip text."""
     if not text:
         return None
 
     text = text.upper()
 
-    # Patterns that capture the full ID including the letter
-    patterns = [
-        r"\b\d{2}-\d{6}\s*[A-Z]\s*\d{2}\b",   # 12-654321 B 34
-        r"\b\d{2}\d{6}[A-Z]\d{2}\b",          # 12654321B34
-    ]
+    # Look for "NATIONAL ID:" label and capture the following characters
+    match = re.search(r"NATIONAL\s*ID\s*:\s*([\d\s-]+[A-Z][\d\s-]*)", text)
+    if match:
+        raw = match.group(1).strip()
+        # Remove all spaces (but keep hyphens if any)
+        raw = re.sub(r"\s+", "", raw)   # "12-654321B34" or "12654321B34"
+        normalized = _normalize_national_id(raw)
+        if normalized:
+            return normalized
 
+    # Fallback: generic patterns
+    patterns = [
+        r"\b\d{2}-\d{6}\s*[A-Z]\s*\d{2}\b",
+        r"\b\d{2}\d{6}[A-Z]\d{2}\b",
+    ]
     for pattern in patterns:
         match = re.search(pattern, text)
         if match:
-            raw_id = match.group(0)
-            # Normalise using the existing function (defined elsewhere in endpoints.py)
-            normalized = _normalize_national_id(raw_id)
+            raw = match.group(0)
+            raw = re.sub(r"\s+", "", raw)
+            normalized = _normalize_national_id(raw)
             if normalized:
                 return normalized
 
     return None
-
 
 @app.route("/api/alerts")
 async def get_alerts():
