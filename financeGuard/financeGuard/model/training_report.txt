@@ -1,0 +1,45 @@
+MFI RISK MODEL - TRAINING REPORT
+============================================================
+
+Dataset: C:\Users\MyPC\Documents\Projects\Risk\Riscore\Old\data.csv
+Records: 8000
+
+Risk Label Distribution:
+Risk Label
+Low       4078
+Medium    2335
+High      1587
+Name: count, dtype: int64
+
+CV Accuracy: 0.994 +/- 0.004
+Test Accuracy: 0.992
+
+Classification Report:
+              precision    recall  f1-score   support
+
+        High       1.00      1.00      1.00       317
+         Low       1.00      0.98      0.99       816
+      Medium       0.97      1.00      0.99       467
+
+    accuracy                           0.99      1600
+   macro avg       0.99      0.99      0.99      1600
+weighted avg       0.99      0.99      0.99      1600
+
+
+Feature Importances (Top 15):
+Days Past Due (Max)                0.294078
+Return_Rate_Norm                   0.234175
+Historical Return Rate (%)         0.153153
+Is_Overdue                         0.116459
+MFI Diversity Score                0.100073
+Overdue_Severity                   0.049722
+Loan_to_Income                     0.032478
+Employment Sector_Public Sector    0.019336
+Active Loans                       0.000350
+Current Monthly Salary (USD)       0.000175
+Total Previous Loans               0.000000
+Total Outstanding Balance (USD)    0.000000
+Debt_to_Income                     0.000000
+Active_Loan_Density                0.000000
+Avg Loan Amount (USD)              0.000000
+dtype: float64

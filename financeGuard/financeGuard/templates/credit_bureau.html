@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Credit Bureau | FinanceGuard</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #13161d;
+    --surface2: #1a1e28;
+    --border: #252a38;
+    --border2: #2e3547;
+    --text: #e8eaf0;
+    --muted: #6b7490;
+    --accent: #4f7cff;
+    --accent2: #3a5fd4;
+    --high: #ff4e4e;
+    --high-bg: rgba(255,78,78,0.08);
+    --high-border: rgba(255,78,78,0.25);
+    --medium: #f59e0b;
+    --medium-bg: rgba(245,158,11,0.08);
+    --medium-border: rgba(245,158,11,0.25);
+    --low: #22c55e;
+    --low-bg: rgba(34,197,94,0.08);
+    --low-border: rgba(34,197,94,0.25);
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; min-height: 100vh; }
+
+  /* ── Layout ── */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex; align-items: center; gap: 24px;
+    height: 56px;
+  }
+  .header-logo { font-family: var(--mono); font-size: 13px; font-weight: 500; color: var(--accent); letter-spacing: 0.05em; }
+  .header-sep { width: 1px; height: 20px; background: var(--border2); }
+  .header-title { font-size: 13px; color: var(--muted); }
+  .header-actions { margin-left: auto; display: flex; gap: 10px; }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+
+  /* ── Stats bar ── */
+  .stats-bar {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+  }
+  .stat-label { font-size: 11px; font-family: var(--mono); color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+  .stat-value { font-size: 28px; font-weight: 300; color: var(--text); letter-spacing: -0.02em; }
+  .stat-card.danger .stat-value { color: var(--high); }
+  .stat-card.warn .stat-value { color: var(--medium); }
+  .stat-card.good .stat-value { color: var(--low); }
+
+  /* ── Controls ── */
+  .controls {
+    display: flex; gap: 12px; align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .search-wrap { position: relative; flex: 1; min-width: 220px; }
+  .search-wrap input {
+    width: 100%; background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 8px; color: var(--text); padding: 9px 12px 9px 36px;
+    font-family: var(--sans); font-size: 13px; outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-wrap input:focus { border-color: var(--accent); }
+  .search-wrap input::placeholder { color: var(--muted); }
+  .search-icon { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+
+  .filter-group { display: flex; gap: 6px; }
+  .filter-btn {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 6px; color: var(--muted); padding: 8px 14px;
+    font-size: 12px; font-family: var(--mono); cursor: pointer;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .filter-btn:hover { border-color: var(--border); color: var(--text); }
+  .filter-btn.active-all  { background: rgba(79,124,255,0.12); border-color: var(--accent); color: var(--accent); }
+  .filter-btn.active-high { background: var(--high-bg); border-color: var(--high-border); color: var(--high); }
+  .filter-btn.active-medium { background: var(--medium-bg); border-color: var(--medium-border); color: var(--medium); }
+  .filter-btn.active-low { background: var(--low-bg); border-color: var(--low-border); color: var(--low); }
+
+  /* ── ID Lookup panel ── */
+  .lookup-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+  }
+  .lookup-panel h3 { font-size: 12px; font-family: var(--mono); color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 14px; }
+  .lookup-row { display: flex; gap: 10px; align-items: center; }
+  .lookup-row input {
+    flex: 1; max-width: 280px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 8px; color: var(--text); padding: 9px 14px;
+    font-family: var(--mono); font-size: 13px; outline: none;
+    transition: border-color 0.15s;
+    letter-spacing: 0.05em;
+  }
+  .lookup-row input:focus { border-color: var(--accent); }
+  .lookup-row input::placeholder { color: var(--muted); font-family: var(--sans); letter-spacing: 0; }
+  .btn-primary {
+    background: var(--accent); color: #fff; border: none;
+    border-radius: 8px; padding: 9px 20px;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: background 0.15s;
+  }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .lookup-result {
+    margin-top: 16px; padding: 16px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; display: none;
+  }
+  .lookup-result.show { display: block; }
+  .lookup-result.not-found { border-color: var(--border2); }
+  .lookup-result.found-high { border-left: 3px solid var(--high); }
+  .lookup-result.found-medium { border-left: 3px solid var(--medium); }
+  .lookup-result.found-low { border-left: 3px solid var(--low); }
+
+  /* ── Table ── */
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .table-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .table-header h2 { font-size: 13px; font-weight: 500; color: var(--text); }
+  .record-count { font-size: 11px; font-family: var(--mono); color: var(--muted); }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    padding: 10px 16px; text-align: left;
+    font-size: 10px; font-family: var(--mono); color: var(--muted);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    font-weight: 400;
+  }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
+  tbody td { padding: 13px 16px; vertical-align: middle; }
+  .td-name { font-weight: 500; color: var(--text); font-size: 13px; }
+  .td-id { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .risk-badge {
+    display: inline-block; padding: 3px 9px; border-radius: 4px;
+    font-size: 10px; font-family: var(--mono); font-weight: 500; letter-spacing: 0.06em;
+  }
+  .risk-HIGH { background: var(--high-bg); color: var(--high); border: 1px solid var(--high-border); }
+  .risk-MEDIUM { background: var(--medium-bg); color: var(--medium); border: 1px solid var(--medium-border); }
+  .risk-LOW { background: var(--low-bg); color: var(--low); border: 1px solid var(--low-border); }
+
+  .credit-bar-wrap { display: flex; align-items: center; gap: 10px; min-width: 120px; }
+  .credit-bar-bg { flex: 1; height: 4px; background: var(--border2); border-radius: 2px; overflow: hidden; }
+  .credit-bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
+  .credit-score-num { font-family: var(--mono); font-size: 12px; min-width: 28px; }
+
+  .institutions { display: flex; flex-wrap: wrap; gap: 4px; }
+  .inst-tag {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 4px; padding: 2px 7px;
+    font-size: 10px; color: var(--muted); white-space: nowrap;
+  }
+  .none-tag { font-size: 11px; color: var(--border2); font-family: var(--mono); }
+
+  .expand-btn {
+    background: none; border: 1px solid var(--border2); border-radius: 6px;
+    color: var(--muted); padding: 5px 10px; font-size: 11px; font-family: var(--mono);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .expand-btn:hover { color: var(--text); border-color: var(--accent); }
+
+  /* Detail row */
+  .detail-row { display: none; background: var(--surface2); }
+  .detail-row.open { display: table-row; }
+  .detail-inner { padding: 16px 20px; }
+  .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
+  .detail-item label { font-size: 10px; font-family: var(--mono); color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; display: block; margin-bottom: 4px; }
+  .detail-item .val { font-size: 14px; font-weight: 500; color: var(--text); }
+  .detail-notes { font-size: 12px; color: var(--muted); line-height: 1.6; padding-top: 10px; border-top: 1px solid var(--border); margin-top: 4px; }
+
+  .empty-state { padding: 48px; text-align: center; color: var(--muted); font-size: 13px; }
+
+  .loading { padding: 32px; text-align: center; color: var(--muted); font-family: var(--mono); font-size: 12px; }
+  .loading::after { content: ''; animation: dots 1.2s infinite; }
+  @keyframes dots { 0%{content:'.'} 33%{content:'..'} 66%{content:'...'} }
+
+  @media (max-width: 768px) {
+    .stats-bar { grid-template-columns: repeat(2, 1fr); }
+    .container { padding: 16px; }
+    thead th:nth-child(n+4) { display: none; }
+    tbody td:nth-child(n+4) { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <span class="header-logo">FinanceGuard</span>
+  <span class="header-sep"></span>
+  <span class="header-title">Credit Reference Bureau</span>
+  <div class="header-actions">
+    <a href="/dashboard" style="color:var(--muted);text-decoration:none;font-size:12px;font-family:var(--mono)">← Dashboard</a>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- Stats -->
+  <div class="stats-bar" id="statsBar">
+    <div class="stat-card"><div class="stat-label">Total Records</div><div class="stat-value" id="st-total">—</div></div>
+    <div class="stat-card danger"><div class="stat-label">High Risk</div><div class="stat-value" id="st-high">—</div></div>
+    <div class="stat-card warn"><div class="stat-label">Medium Risk</div><div class="stat-value" id="st-medium">—</div></div>
+    <div class="stat-card good"><div class="stat-label">Low Risk</div><div class="stat-value" id="st-low">—</div></div>
+  </div>
+
+  <!-- ID Lookup -->
+  <div class="lookup-panel">
+    <h3>National ID Lookup</h3>
+    <div class="lookup-row">
+      <input type="text" id="lookupInput" placeholder="e.g. 34-567890I89" maxlength="14" />
+      <button class="btn-primary" id="lookupBtn" onclick="lookupById()">Look up</button>
+    </div>
+    <div class="lookup-result" id="lookupResult"></div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="search-wrap">
+      <svg class="search-icon" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input type="text" id="searchBox" placeholder="Search by name..." oninput="applyFilters()" />
+    </div>
+    <div class="filter-group">
+      <button class="filter-btn active-all" id="fAll" onclick="setFilter('ALL')">All</button>
+      <button class="filter-btn" id="fHigh" onclick="setFilter('HIGH')">High Risk</button>
+      <button class="filter-btn" id="fMedium" onclick="setFilter('MEDIUM')">Medium Risk</button>
+      <button class="filter-btn" id="fLow" onclick="setFilter('LOW')">Low Risk</button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="table-wrap">
+    <div class="table-header">
+      <h2>Bureau Records</h2>
+      <span class="record-count" id="recordCount">Loading…</span>
+    </div>
+    <div id="tableContainer"><div class="loading">Fetching bureau data</div></div>
+  </div>
+
+</main>
+
+<script>
+let ALL_RECORDS = [];
+let currentFilter = 'ALL';
+
+async function loadBureau() {
+  try {
+    const res = await fetch('/api/credit-bureau');
+    const json = await res.json();
+    ALL_RECORDS = json.records || [];
+    updateStats(json.records);
+    renderTable(ALL_RECORDS);
+  } catch(e) {
+    document.getElementById('tableContainer').innerHTML = '<div class="empty-state">Could not load bureau data. Is FinanceGuard running?</div>';
+  }
+}
+
+function updateStats(records) {
+  document.getElementById('st-total').textContent = records.length;
+  document.getElementById('st-high').textContent = records.filter(r => r.risk_flag === 'HIGH').length;
+  document.getElementById('st-medium').textContent = records.filter(r => r.risk_flag === 'MEDIUM').length;
+  document.getElementById('st-low').textContent = records.filter(r => r.risk_flag === 'LOW').length;
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  ['All','High','Medium','Low'].forEach(x => {
+    const btn = document.getElementById('f'+x);
+    btn.className = 'filter-btn';
+    if ('ALL HIGH MEDIUM LOW'.split(' ')[['All','High','Medium','Low'].indexOf(x)] === f) {
+      btn.className = 'filter-btn active-' + x.toLowerCase();
+    }
+  });
+  applyFilters();
+}
+
+function applyFilters() {
+  const search = document.getElementById('searchBox').value.toLowerCase();
+  let filtered = ALL_RECORDS;
+  if (currentFilter !== 'ALL') filtered = filtered.filter(r => r.risk_flag === currentFilter);
+  if (search) filtered = filtered.filter(r => r.full_name.toLowerCase().includes(search));
+  renderTable(filtered);
+}
+
+function creditColor(score) {
+  if (score >= 70) return '#22c55e';
+  if (score >= 40) return '#f59e0b';
+  return '#ff4e4e';
+}
+
+function renderTable(records) {
+  document.getElementById('recordCount').textContent = records.length + ' record' + (records.length !== 1 ? 's' : '');
+  if (!records.length) {
+    document.getElementById('tableContainer').innerHTML = '<div class="empty-state">No records match your filters.</div>';
+    return;
+  }
+  let html = `<table>
+    <thead><tr>
+      <th>Borrower</th>
+      <th>Risk</th>
+      <th>Credit Score</th>
+      <th>Active Loans</th>
+      <th>Outstanding</th>
+      <th>Institutions</th>
+      <th></th>
+    </tr></thead><tbody>`;
+
+  records.forEach((r, i) => {
+    const color = creditColor(r.credit_score);
+    const insts = r.institutions.length
+      ? r.institutions.map(i => `<span class="inst-tag">${i}</span>`).join('')
+      : `<span class="none-tag">none</span>`;
+    html += `
+    <tr id="row-${i}">
+      <td>
+        <div class="td-name">${r.full_name}</div>
+        <div class="td-id">${r.national_id}</div>
+      </td>
+      <td><span class="risk-badge risk-${r.risk_flag}">${r.risk_flag}</span></td>
+      <td>
+        <div class="credit-bar-wrap">
+          <div class="credit-bar-bg"><div class="credit-bar-fill" style="width:${r.credit_score}%;background:${color}"></div></div>
+          <span class="credit-score-num" style="color:${color}">${r.credit_score}</span>
+        </div>
+      </td>
+      <td style="font-family:var(--mono);font-size:12px">${r.active_loans_elsewhere}</td>
+      <td style="font-family:var(--mono);font-size:12px">$${r.outstanding_elsewhere.toLocaleString()}</td>
+      <td><div class="institutions">${insts}</div></td>
+      <td><button class="expand-btn" onclick="toggleDetail(${i})">details</button></td>
+    </tr>
+    <tr class="detail-row" id="detail-${i}">
+      <td colspan="7">
+        <div class="detail-inner">
+          <div class="detail-grid">
+            <div class="detail-item"><label>Repayment Rate</label><div class="val">${r.repayment_rate_elsewhere.toFixed(1)}%</div></div>
+            <div class="detail-item"><label>Days Past Due</label><div class="val" style="color:${r.days_past_due_elsewhere > 30 ? 'var(--high)' : 'var(--text)'}">${r.days_past_due_elsewhere} days</div></div>
+            <div class="detail-item"><label>Recent Applications</label><div class="val">${r.recent_applications_elsewhere} (last 30 days)</div></div>
+            <div class="detail-item"><label>Unsettled Loans</label><div class="val">${r.unsettled_loan_count ?? r.unsettled_loans_elsewhere ?? 0}</div></div>
+          </div>
+          <div class="detail-notes">📋 ${r.notes || 'No additional notes.'}</div>
+        </div>
+      </td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('tableContainer').innerHTML = html;
+}
+
+function toggleDetail(i) {
+  const row = document.getElementById('detail-' + i);
+  const btn = document.querySelector(`#row-${i} .expand-btn`);
+  const isOpen = row.classList.contains('open');
+  row.classList.toggle('open', !isOpen);
+  btn.textContent = isOpen ? 'details' : 'close';
+}
+
+async function lookupById() {
+  const nid = document.getElementById('lookupInput').value.trim().toUpperCase();
+  const resultEl = document.getElementById('lookupResult');
+  if (!nid) return;
+  document.getElementById('lookupBtn').disabled = true;
+  resultEl.className = 'lookup-result show';
+  resultEl.innerHTML = '<span style="color:var(--muted);font-size:12px">Looking up...</span>';
+  try {
+    const res = await fetch('/api/credit-bureau/' + encodeURIComponent(nid));
+    const d = await res.json();
+    if (!res.ok || !d.found) {
+      resultEl.className = 'lookup-result show not-found';
+      resultEl.innerHTML = `<div style="color:var(--muted);font-size:13px">
+        <span style="font-family:var(--mono);color:var(--border2)">NOT FOUND</span>&nbsp;&nbsp;
+        No bureau record exists for <strong style="color:var(--text)">${nid}</strong>.
+        This borrower has no external loan history.
+      </div>`;
+    } else {
+      const riskClass = 'found-' + d.risk_flag.toLowerCase();
+      const color = {HIGH:'var(--high)',MEDIUM:'var(--medium)',LOW:'var(--low)'}[d.risk_flag] || 'var(--text)';
+      const insts = d.institutions?.length ? d.institutions.join(', ') : 'None';
+      resultEl.className = 'lookup-result show ' + riskClass;
+      resultEl.innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+          <strong style="font-size:15px">${d.full_name}</strong>
+          <span class="risk-badge risk-${d.risk_flag}">${d.risk_flag}</span>
+          <span style="font-family:var(--mono);font-size:11px;color:${color}">Score ${d.credit_score}/100</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:12px">
+          <div><div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:3px">ACTIVE LOANS</div><div style="font-weight:500">${d.active_loans_elsewhere}</div></div>
+          <div><div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:3px">OUTSTANDING</div><div style="font-weight:500">$${(d.outstanding_elsewhere||0).toLocaleString()}</div></div>
+          <div><div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:3px">REPAYMENT RATE</div><div style="font-weight:500">${(d.repayment_rate_elsewhere||100).toFixed(1)}%</div></div>
+          <div><div style="font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:3px">DAYS PAST DUE</div><div style="font-weight:500;color:${d.days_past_due_elsewhere > 0 ? 'var(--high)' : 'var(--low)'}">${d.days_past_due_elsewhere} days</div></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted)"><strong style="font-size:10px;font-family:var(--mono);letter-spacing:0.06em">INSTITUTIONS:</strong> ${insts}</div>
+        ${d.notes ? `<div style="margin-top:10px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:10px">${d.notes}</div>` : ''}`;
+    }
+  } catch(e) {
+    resultEl.innerHTML = '<div style="color:var(--high);font-size:12px">Error contacting bureau API.</div>';
+  }
+  document.getElementById('lookupBtn').disabled = false;
+}
+
+document.getElementById('lookupInput').addEventListener('keydown', e => { if(e.key === 'Enter') lookupById(); });
+
+loadBureau();
+</script>
+</body>
+</html>
