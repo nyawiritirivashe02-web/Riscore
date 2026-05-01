@@ -179,9 +179,8 @@ const idNumberMismatchMessage = computed(() =>
 
       // True when the ID field contains a plausible full ZW national ID
       const idLooksComplete = computed(() => {
-        const v = (idNumber.value || "").trim().toUpperCase();
-        // Accept with or without hyphen/spaces: 12-654321B34, 12654321B34, 12-654321 B 34
-        return /^\d{2}-?\d{6}\s*[A-Z]\s*\d{2}$/.test(v);
+        const v = idNumber.value ? idNumber.value.trim().toUpperCase() : "";
+        return /^\d{2}-\d{6}[A-Z]\d{2}$/.test(v) || /^\d{2}\d{6}[A-Z]\d{2}$/.test(v);
       });
 
       const isFormValid = computed(() => {
@@ -206,10 +205,10 @@ const idNumberMismatchMessage = computed(() =>
       const parseCurrency = (value) => {
         if (value == null) return null;
         if (typeof value === "number") return value;
-const cleaned = match[1]
-  .toUpperCase()
-  .replace(/\s+/g, "")
-  .replace(/-/g, "");        const parsed = parseFloat(cleaned);
+        const cleaned = String(value)
+          .replace(/[^0-9.\-]/g, "")
+          .replace(/,/g, "");
+        const parsed = parseFloat(cleaned);
         return Number.isFinite(parsed) ? parsed : null;
       };
 
@@ -277,23 +276,45 @@ const cleaned = match[1]
         }
       };
 
+      const normalizeIdValue = (value) =>
+        String(value || "").replace(/[^0-9A-Za-z-]/g, "").toUpperCase();
+
+      const formatZwId = (cleaned) => {
+        const match = cleaned.match(/^(\d{2})(\d{6}[A-Z]\d{2})/);
+        return match ? `${match[1]}-${match[2]}` : "";
+      };
+
+      const normalizeExtractedId = (rawId) => {
+        const cleaned = String(rawId || "").replace(/[^0-9A-Za-z]/g, "").toUpperCase();
+        return formatZwId(cleaned);
+      };
+
+      const findZwIdSubstring = (cleaned) => {
+        const match = cleaned.match(/(\d{2}\d{6}[A-Z]\d{2})/);
+        return match ? formatZwId(match[1]) : "";
+      };
+
       const extractIdNumberFromText = (rawText) => {
         const normalized = (rawText || "").replace(/\r/g, "\n");
         const patterns = [
-          /(?:national\s*id|identity\s*number|id\s*(?:number|no))\s*[:\-]?\s*([\d\s-]{6,20})/i,
-          /\b(\d{2}[-\s]?\d{7,8})\b/,
-          /\b(\d{9,12})\b/,
+          /(?:national\s*id|identity\s*number|id\s*(?:number|no))\s*[:\-]?\s*([A-Za-z0-9\s-]{6,20})/i,
+          /(\b\d{2}[-\s]?\d{6}[A-Za-z]\d{1,2}\b)/i,
+          /(\b\d{2}\s*\d{6}[A-Za-z]\d{1,2}\b)/i,
+          /(\b\d{2}[-\s]?\d{7,8}\b)/,
+          /(\b[A-Za-z0-9]{9,12}\b)/,
         ];
         for (const pattern of patterns) {
           const match = normalized.match(pattern);
           if (match && match[1]) {
-            const cleaned = match[1].replace(/[^\d]/g, "");
-            if (cleaned.length >= 6 && cleaned.length <= 13) {
-              return cleaned;
+            const normalizedId = normalizeExtractedId(match[1]);
+            if (normalizedId) {
+              return normalizedId;
             }
           }
         }
-        return "";
+
+        const cleaned = normalized.replace(/[^0-9A-Za-z]/g, "").toUpperCase();
+        return findZwIdSubstring(cleaned);
       };
 
       const handleIdUpload = async (event) => {
@@ -326,6 +347,7 @@ const cleaned = match[1]
       };
 
       const runAssessment = async () => {
+        console.log("Apply button clicked");
         isAssessing.value = true;
         errorMessage.value = "";
         if (!payslipNameMatches.value) {

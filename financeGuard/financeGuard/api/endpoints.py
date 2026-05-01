@@ -33,21 +33,21 @@ except ModuleNotFoundError:
 import re
 
 def extract_name(text):
-    match = re.search(r"(?:Name|Employee Name)\s*[:\-]?\s*([A-Z][a-z]+\s+[A-Z][a-z]+)", text)
+    match = re.search(r"(?:Name|Employee   Name:)\s*[:\-]?\s*([A-Z][a-z]+\s+[A-Z][a-z]+)", text)
     return match.group(1) if match else ""
 
 def extract_net_pay(text):
-    match = re.search(r"(?:Net Pay|Net Salary)\s*[:\-]?\s*\$?([\d,]+\.?\d*)", text, re.IGNORECASE)
+    match = re.search(r"(?:Net Pay|NET   SALARY:)\s*[:\-]?\s*\$?([\d,]+\.?\d*)", text, re.IGNORECASE)
     if match:
         return float(match.group(1).replace(",", ""))
     return 0
 
 def extract_department(text):
-    match = re.search(r"(?:Department)\s*[:\-]?\s*(.+)", text)
+    match = re.search(r"(?: Department:)\s*[:\-]?\s*(.+)", text)
     return match.group(1).strip() if match else ""
 
 def extract_position(text):
-    match = re.search(r"(?:Position|Job Title)\s*[:\-]?\s*(.+)", text)
+    match = re.search(r"(?:Position:|Job Title)\s*[:\-]?\s*(.+)", text)
     return match.group(1).strip() if match else ""
 async def ensure_db_ready():
     """Initialize tables only when needed and seed demo data only if empty."""
@@ -1242,6 +1242,7 @@ def parse_payslip():
     try:
         data = request.get_json()
         text = data.get("text", "")
+        print(text)
 
         if not text:
             return jsonify({"error": "No text provided"}), 400
@@ -1254,7 +1255,7 @@ def parse_payslip():
         position = extract_position(text)
 
         # 🔥 DEBUG LOG (VERY IMPORTANT)
-        print("Parsed:", employee_name, net_pay, national_id)
+        print("Parsed:", employee_name, net_pay, national_id, department, position)
 
         # ✅ ALWAYS RETURN SUCCESS RESPONSE
         return jsonify({
@@ -1306,13 +1307,12 @@ def _extract_national_id(text: str) -> str | None:
       12-654321 B 34
       12654321B34
     """
-
     if not text:
         return None
 
     text = text.upper()
 
-    # Pattern: 2 digits - 6 digits + letter + 2 digits (with optional spaces)
+    # Patterns that capture the full ID including the letter
     patterns = [
         r"\b\d{2}-\d{6}\s*[A-Z]\s*\d{2}\b",   # 12-654321 B 34
         r"\b\d{2}\d{6}[A-Z]\d{2}\b",          # 12654321B34
@@ -1322,29 +1322,12 @@ def _extract_national_id(text: str) -> str | None:
         match = re.search(pattern, text)
         if match:
             raw_id = match.group(0)
-
-            # Normalize using your existing function
+            # Normalise using the existing function (defined elsewhere in endpoints.py)
             normalized = _normalize_national_id(raw_id)
             if normalized:
                 return normalized
 
     return None
-    data = request.get_json(silent=True) or {}
-    if not data:
-        return jsonify({"success": False, "error": "Invalid JSON body."}), 400
-    text = data.get("text", "")
-    if not isinstance(text, str) or not text.strip():
-        return jsonify({"success": False, "error": "Text is required."}), 400
-    employee_name = _extract_employee_name(text)
-    if not employee_name:
-        return jsonify({"success": False, "error": "Could not extract employee name from payslip."}), 422
-    department = _extract_labeled_text(text, ["department", "dept", "division", "unit"])
-    position = _extract_labeled_text(text, ["position", r"job\s*title", "role", "designation"])
-    net_pay = _extract_net_pay(text)
-    if net_pay is None:
-        return jsonify({"success": False, "error": "Could not extract net pay."}), 422
-    national_id = _extract_national_id(text)
-    return jsonify({"success": True, "salary": net_pay, "net_pay": net_pay, "national_id": national_id, "employee_name": employee_name, "department": department, "position": position})
 
 
 @app.route("/api/alerts")
