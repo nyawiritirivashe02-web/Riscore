@@ -2,135 +2,143 @@
 
 {% block content %}
 <div class="grid gap-6 lg:grid-cols-1">
-  <!-- Main risk score card -->
-  <section
-    class="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-    <h2 class="text-base font-semibold">Risk Score</h2>
-    <p class="mt-1 text-sm text-neutral-500">
-      Review your most recent assessment.
-    </p>
+  <section class="rounded-2xl border border-neutral-200/80 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+    <h2 class="text-base font-semibold">Risk Assessment Result</h2>
+    <p class="mt-1 text-sm text-neutral-500">Your most recent loan application assessment.</p>
 
-    <div v-if="hasAssessment" class="mt-6 space-y-6">
-      <!-- ML Risk Score Card (Objective 1) -->
-      <div
-        class="rounded-2xl border border-neutral-200 bg-neutral-50 p-5 dark:border-neutral-800 dark:bg-neutral-950">
-        <div class="flex items-start justify-between">
+    <div v-if="hasAssessment" class="mt-6 space-y-5">
+
+      <!-- Main Risk Score -->
+      <div class="rounded-2xl border border-neutral-200 bg-neutral-50 p-5 dark:border-neutral-800 dark:bg-neutral-950">
+        <div class="flex items-start justify-between gap-3">
           <div>
-            <div class="text-xs uppercase tracking-[0.2em] text-neutral-500">ML Risk Score (Objective 1)</div>
-            <div class="text-4xl font-semibold mt-1">
-              [[riskScore.toFixed(1)]]
-            </div>
+            <div class="text-xs uppercase tracking-[0.2em] text-neutral-500">Risk Score (Merged)</div>
+            <div class="text-5xl font-semibold mt-1">[[riskScore.toFixed(1)]]</div>
+            <div class="mt-2 text-sm font-semibold" :class="riskClass">[[riskLabel]] risk</div>
           </div>
           <button v-if="xaiExplanation && xaiExplanation.available" @click="showXaiModal = true"
-            class="rounded-full bg-neutral-200 px-3 py-1 text-xs font-semibold text-neutral-700 hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-200">
-            Explain this decision
+            class="shrink-0 rounded-full bg-neutral-200 px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-200">
+            Why this score?
           </button>
-          <span v-else-if="xaiExplanation && !xaiExplanation.available" class="text-xs text-neutral-400">No explanation
-            available</span>
         </div>
-        <div class="mt-5">
-          <div class="flex items-center justify-between text-xs font-medium text-neutral-500">
-            <span>Low</span>
-            <span>High</span>
+        <div class="mt-4">
+          <div class="flex items-center justify-between text-xs text-neutral-400 mb-1">
+            <span>Low risk</span><span>High risk</span>
           </div>
-          <div class="mt-2 h-2 w-full rounded-full bg-neutral-200 dark:bg-neutral-800">
-            <div class="h-2 rounded-full" :style="{ width: riskScore + '%', background: riskColor }"></div>
+          <div class="h-2.5 w-full rounded-full bg-neutral-200 dark:bg-neutral-800">
+            <div class="h-2.5 rounded-full transition-all duration-500"
+              :style="{ width: riskScore + '%', background: riskColor }"></div>
           </div>
-          <div class="mt-3 text-sm font-semibold" :class="riskClass">
-            [[riskLabel]] risk
-          </div>
+        </div>
+
+        <!-- Clickable badges -->
+        <div class="mt-4 flex flex-wrap gap-2">
+          <button @click="showPayslipModal = true"
+            class="rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400 hover:bg-neutral-200 cursor-pointer">
+            📄 Payslip data
+          </button>
+          <button @click="showInternalModal = true"
+            class="rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400 hover:bg-neutral-200 cursor-pointer">
+            🏦 Internal records
+          </button>
+          <button v-if="creditBureauUsed" @click="showCreditBureauModal = true"
+            class="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 hover:bg-blue-200 cursor-pointer">
+            🔍 Credit bureau included
+          </button>
+          <span v-else class="rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-400">No credit bureau data</span>
         </div>
       </div>
 
-      <!-- Anomaly Detection Card (Objective 2) – shows internal vs merged -->
-      <div class="rounded-2xl border border-amber-200 bg-amber-50/30 p-5 dark:border-amber-900 dark:bg-amber-950/20">
-        <div class="flex flex-wrap justify-between items-start gap-2">
-          <div>
-            <div class="text-xs uppercase tracking-[0.2em] text-amber-600 dark:text-amber-400">Anomaly Detection
-              (Objective 2)</div>
-            <div class="mt-1 text-sm text-neutral-500">Rule‑based risk flags</div>
-          </div>
+      <!-- Internal-only risk score (if available) -->
+      <div v-if="internalRiskScore !== null"
+        class="rounded-2xl border border-neutral-200 bg-neutral-50 p-3 dark:border-neutral-800 dark:bg-neutral-950 text-sm">
+        <div class="flex justify-between items-center">
+          <span class="text-xs text-neutral-500">Internal only (your MFI data)</span>
+          <span class="text-lg font-semibold" :class="internalRiskLabel === 'High' ? 'text-red-500' : internalRiskLabel === 'Medium' ? 'text-amber-500' : 'text-emerald-500'">
+            [[internalRiskScore.toFixed(1)]] ([[internalRiskLabel]] risk)
+          </span>
         </div>
-        <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="rounded-xl bg-white p-3 dark:bg-neutral-900">
-            <div class="text-xs text-neutral-500">Internal anomaly score<br>(your MFI only)</div>
-            <div class="text-2xl font-semibold" :class="internalAnomalyScore >= 35 ? 'text-red-500' : 'text-neutral-700'">
-              [[internalAnomalyScore.toFixed(1)]]
-            </div>
-            <div class="text-xs mt-1 text-neutral-400">Threshold 35 → rejection if ≥35</div>
-          </div>
-          <div class="rounded-xl bg-white p-3 dark:bg-neutral-900">
-            <div class="text-xs text-neutral-500">Merged anomaly score<br>(incl. external credit data)</div>
-            <div class="text-2xl font-semibold" :class="mergedAnomalyScore >= 35 ? 'text-red-500' : 'text-neutral-700'">
-              [[mergedAnomalyScore.toFixed(1)]]
-            </div>
-            <div class="text-xs mt-1 text-amber-600" v-if="mergedAnomalyScore > internalAnomalyScore">
-              ⚠️ External data increased score
-            </div>
-          </div>
-        </div>
-        <div class="mt-4" v-if="anomaliesList.length">
-          <div class="text-xs font-semibold uppercase tracking-[0.1em] text-amber-600">Triggered anomalies (merged)
-          </div>
-          <div class="flex flex-wrap gap-2 mt-2">
-            <span v-for="anom in anomaliesList" :key="anom.code"
-              class="rounded-full bg-amber-100 px-3 py-1 text-xs text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
-              [[anom.code]]
-            </span>
-          </div>
-        </div>
-        <div v-else class="mt-4 text-sm text-amber-600">No anomalies detected after merging external data.</div>
+        <p class="text-xs text-neutral-400 mt-1">External credit bureau data was not used for this number.</p>
       </div>
 
-      <!-- Credit Bureau Integration Card (only if external data was used) -->
+      <!-- Credit Bureau Card (short summary) -->
       <div v-if="creditBureauUsed"
-        class="rounded-2xl border border-blue-200 bg-blue-50/30 p-5 dark:border-blue-900 dark:bg-blue-950/20">
-        <div class="flex items-center gap-2">
-          <span class="text-xs uppercase tracking-[0.2em] text-blue-600">Credit Bureau (External Data)</span>
-          <span class="rounded-full bg-blue-200 px-2 py-0.5 text-xs text-blue-800">Simulated RBZ Registry</span>
+        class="rounded-2xl border border-blue-200 bg-blue-50/40 p-5 dark:border-blue-900 dark:bg-blue-950/20">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">External Credit Check</span>
+          <span class="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700 dark:bg-blue-900 dark:text-blue-300">Simulated RBZ Registry</span>
         </div>
-        <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-          <div><span class="font-semibold">External institutions:</span> [[externalInstitutions.join(', ') || 'None']]
-          </div>
-          <div><span class="font-semibold">External active loans:</span> [[externalActiveLoans]]</div>
-          <div><span class="font-semibold">External outstanding:</span> $[[externalOutstanding.toLocaleString()]]</div>
-          <div v-if="externalCreditScore"><span class="font-semibold">External credit score:</span> [[externalCreditScore]]
-          </div>
-        </div>
-        <div class="mt-2 text-xs text-blue-600">Merged with internal data to produce final risk assessment.</div>
+        <p class="text-sm text-neutral-600 dark:text-neutral-300">
+          Your credit history was verified across
+          <strong>[[ externalInstitutions.length ]]</strong> external institution(s):
+          <span class="font-medium">[[ externalInstitutions.join(', ') || 'none on record' ]]</span>.
+        </p>
+        <p class="mt-1 text-xs text-neutral-400">This data was merged with your application to produce the final score.</p>
       </div>
 
-      <!-- Decision and tracking -->
+      <!-- Tracking Number and Decision (unchanged) -->
       <div v-if="trackingNumber"
-        class="rounded-2xl border border-dashed border-neutral-300 bg-white p-4 text-sm dark:border-neutral-700">
+        class="rounded-2xl border border-dashed border-neutral-300 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-950">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-xs text-neutral-500">Your tracking number</p>
-            <p class="text-lg font-semibold">[[ trackingNumber ]]</p>
+            <p class="text-xs text-neutral-500">Tracking number</p>
+            <p class="text-lg font-semibold font-mono">[[ trackingNumber ]]</p>
           </div>
-          <button class="rounded-full border border-neutral-200 px-3 py-1 text-xs font-semibold"
-            @click="copyTrackingNumber">
+          <button @click="copyTrackingNumber"
+            class="rounded-full border border-neutral-200 px-3 py-1 text-xs font-semibold hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-800">
             Copy
           </button>
         </div>
-        <p class="mt-2 text-xs text-neutral-400">
-          Copy and save this number for future status inquiries.
-        </p>
+        <p class="mt-2 text-xs text-neutral-400">Save this number to check your application status.</p>
       </div>
 
-      <div class="rounded-2xl border border-neutral-200 bg-white p-4 text-sm dark:border-neutral-800 dark:bg-neutral-950">
-        <div class="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-neutral-500">
-          <span>Decision status</span>
-          <span>[[ decisionStatus.toUpperCase() ]]</span>
-        </div>
-        <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
+      <div class="rounded-2xl border p-4"
+        :class="decisionStatus === 'approved'
+          ? 'border-emerald-200 bg-emerald-50/50 dark:border-emerald-900 dark:bg-emerald-950/20'
+          : 'border-red-200 bg-red-50/50 dark:border-red-900 dark:bg-red-950/20'">
+        <span class="text-xs font-semibold uppercase tracking-[0.2em]"
+          :class="decisionStatus === 'approved' ? 'text-emerald-600' : 'text-red-600'">
+          [[ decisionStatus === 'approved' ? '✓ Approved' : '✗ Not Approved' ]]
+        </span>
+        <p class="mt-2 text-sm"
+          :class="decisionStatus === 'approved' ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300'">
           [[ decisionReason ]]
         </p>
       </div>
+
+      <!-- Areas to improve / cleared (unchanged) -->
+      <div v-if="decisionStatus !== 'approved' && areasFailed.length"
+        class="rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-950">
+        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500 mb-3">Areas to improve</p>
+        <ul class="space-y-2">
+          <li v-for="area in areasFailed" :key="area.title" class="flex items-start gap-2 text-sm">
+            <span class="mt-0.5 text-red-400">✗</span>
+            <div>
+              <span class="font-medium text-neutral-800 dark:text-neutral-200">[[ area.title ]]</span>
+              <span class="block text-xs text-neutral-500 mt-0.5">[[ area.detail ]]</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div v-if="areasPassed.length"
+        class="rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-950">
+        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500 mb-3">Areas cleared</p>
+        <ul class="space-y-2">
+          <li v-for="area in areasPassed" :key="area.title" class="flex items-start gap-2 text-sm">
+            <span class="mt-0.5 text-emerald-500">✓</span>
+            <div>
+              <span class="font-medium text-neutral-800 dark:text-neutral-200">[[ area.title ]]</span>
+              <span class="block text-xs text-neutral-500 mt-0.5">[[ area.detail ]]</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+
     </div>
 
-    <div v-else
-      class="mt-6 rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-950">
+    <!-- No assessment yet -->
+    <div v-else class="mt-6 rounded-2xl border border-dashed border-neutral-300 bg-neutral-50 p-6 text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-950">
       <p>No recent assessment found. Start a new application to generate a risk score.</p>
       <a href="/apply"
         class="mt-4 inline-flex rounded-xl bg-neutral-900 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200">
@@ -140,95 +148,135 @@
   </section>
 </div>
 
-<!-- XAI Explanation Modal -->
+<!-- XAI Modal (unchanged) -->
 <transition name="modal">
   <div v-if="showXaiModal"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
     <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900">
-      <div class="flex items-start justify-between">
-        <h3 class="text-base font-semibold">Why this risk score?</h3>
-        <button @click="showXaiModal = false"
-          class="text-neutral-400 hover:text-neutral-600">&times;</button>
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <h3 class="text-base font-semibold">Why this risk score?</h3>
+          <p class="text-xs text-neutral-400 mt-0.5">Key factors that influenced your assessment</p>
+        </div>
+        <button @click="showXaiModal = false" class="text-2xl text-neutral-400 hover:text-neutral-600 leading-none">&times;</button>
       </div>
-      <div class="mt-4 space-y-3">
-        <div v-if="xaiExplanation && xaiExplanation.available">
-          <p class="text-sm"><strong>Predicted:</strong> [[xaiExplanation.predicted_label]] risk ([[xaiExplanation.confidence]]% confidence)</p>
-          <div class="mt-3 rounded-xl bg-neutral-100 p-3 text-sm dark:bg-neutral-800">
-            <div v-for="factor in xaiExplanation.factors" :key="factor.feature" class="mb-2">
-              <span class="font-mono text-xs">[[factor.feature]]</span><br />
-              <span :class="factor.direction === 'increases' ? 'text-red-500' : 'text-green-500'">
-                [[factor.direction]] risk by [[factor.weight]]
-              </span>
+      <div v-if="xaiExplanation && xaiExplanation.available" class="space-y-4">
+        <div class="rounded-xl bg-neutral-50 p-3 dark:bg-neutral-800">
+          <div class="text-xs text-neutral-500 mb-1">Model prediction</div>
+          <div class="font-semibold text-sm">
+            <span :class="xaiExplanation.predicted_label === 'High' ? 'text-red-500' : xaiExplanation.predicted_label === 'Medium' ? 'text-amber-500' : 'text-emerald-500'">
+              [[ xaiExplanation.predicted_label ]] risk
+            </span>
+            <span class="text-neutral-400 font-normal"> — [[ xaiExplanation.confidence ]]% confidence</span>
+          </div>
+        </div>
+        <div>
+          <div class="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-500 mb-2">Top factors</div>
+          <div class="space-y-2">
+            <div v-for="factor in xaiExplanation.factors" :key="factor.feature"
+              class="flex items-center gap-3 rounded-lg border border-neutral-100 p-3 dark:border-neutral-800">
+              <div class="flex-1 min-w-0">
+                <div class="text-xs font-mono text-neutral-600 dark:text-neutral-400 truncate">[[ factor.feature ]]</div>
+                <div class="text-xs mt-0.5" :class="factor.direction === 'increases' ? 'text-red-500' : 'text-emerald-500'">
+                  [[ factor.direction === 'increases' ? '↑ increases risk' : '↓ decreases risk' ]]
+                </div>
+              </div>
+              <div class="text-sm font-semibold shrink-0"
+                :class="factor.direction === 'increases' ? 'text-red-500' : 'text-emerald-500'">
+                [[ (factor.weight * 100).toFixed(1) ]]%
+              </div>
             </div>
           </div>
-          <p class="mt-3 text-xs text-neutral-500">Based on LIME explanation (local interpretable model‑agnostic explanations).</p>
         </div>
-        <div v-else class="text-sm text-neutral-500">Explanation not available for this assessment.</div>
+        <p class="text-xs text-neutral-400">Explanation generated using LIME (Local Interpretable Model-Agnostic Explanations).</p>
       </div>
+      <div v-else class="text-sm text-neutral-500 py-2">Explanation not available for this assessment.</div>
       <div class="mt-5 flex justify-end">
         <button @click="showXaiModal = false"
-          class="rounded-xl bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 dark:bg-white dark:text-neutral-900">
-          Close
-        </button>
+          class="rounded-xl bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 dark:bg-white dark:text-neutral-900">Close</button>
       </div>
     </div>
   </div>
 </transition>
 
-<!-- Rejection modal (unchanged) -->
-<transition name="toast">
-  <div v-show="showRejectionModal" style="display: none;"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+<!-- Payslip Data Modal -->
+<transition name="modal">
+  <div v-if="showPayslipModal"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
     <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900">
-      <div class="flex items-start gap-3">
-        <div
-          class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400">
-          <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" />
-          </svg>
-        </div>
-        <div class="flex-1">
-          <h3 class="text-base font-semibold">Application Not Approved</h3>
-          <div v-if="areasFailed.length"
-            class="mt-4 rounded-2xl border border-red-100 bg-red-50/80 p-3 text-sm text-red-700">
-            <div class="font-semibold text-xs uppercase tracking-[0.2em] text-red-600">Areas that need attention</div>
-            <ul class="mt-2 space-y-1">
-              <li v-for="area in areasFailed" :key="area.title" class="text-xs">
-                <span class="font-semibold text-sm text-red-700">[[ area.title ]]</span>
-                <span class="block text-xs text-red-600/80">[[ area.detail ]]</span>
-              </li>
-            </ul>
-          </div>
-          <div v-if="areasPassed.length"
-            class="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50/80 p-3 text-sm text-emerald-700">
-            <div class="font-semibold text-xs uppercase tracking-[0.2em] text-emerald-600">Areas cleared</div>
-            <ul class="mt-2 space-y-1">
-              <li v-for="area in areasPassed" :key="area.title" class="text-xs">
-                <span class="font-semibold text-sm text-emerald-700">[[ area.title ]]</span>
-                <span class="block text-xs text-emerald-600/80">[[ area.detail ]]</span>
-              </li>
-            </ul>
-          </div>
-        </div>
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-base font-semibold">📄 Payslip Information</h3>
+        <button @click="showPayslipModal = false" class="text-2xl text-neutral-400 hover:text-neutral-600">&times;</button>
+      </div>
+      <div class="space-y-2 text-sm">
+        <div><span class="font-semibold">Name:</span> [[ payslipName ]]</div>
+        <div><span class="font-semibold">Net Pay (USD):</span> $[[ payslipSalary.toFixed(2) ]]</div>
+        <div><span class="font-semibold">National ID:</span> [[ payslipNationalId ]]</div>
+        <div><span class="font-semibold">Department:</span> [[ payslipDepartment ]]</div>
+        <div><span class="font-semibold">Position:</span> [[ payslipPosition ]]</div>
       </div>
       <div class="mt-5 flex justify-end">
-        <button @click="showRejectionModal = false"
-          class="rounded-xl bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200">
-          Close
-        </button>
+        <button @click="showPayslipModal = false" class="rounded-xl bg-neutral-900 px-4 py-2 text-sm text-white">Close</button>
       </div>
     </div>
   </div>
 </transition>
 
+<!-- Internal Records Modal -->
+<transition name="modal">
+  <div v-if="showInternalModal"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-base font-semibold">🏦 Internal Records (Your MFI)</h3>
+        <button @click="showInternalModal = false" class="text-2xl text-neutral-400 hover:text-neutral-600">&times;</button>
+      </div>
+      <div class="space-y-2 text-sm">
+        <div><span class="font-semibold">Employment sector:</span> [[ internalEmploymentSector ]]</div>
+        <div><span class="font-semibold">Job title:</span> [[ internalJobTitle ]]</div>
+        <div><span class="font-semibold">Total previous loans:</span> [[ internalTotalPrevLoans ]]</div>
+        <div><span class="font-semibold">Active loans:</span> [[ internalActiveLoans ]]</div>
+        <div><span class="font-semibold">Outstanding balance:</span> $[[ internalOutstandingBalance.toLocaleString() ]]</div>
+        <div><span class="font-semibold">Repayment rate:</span> [[ internalReturnRate ]]%</div>
+        <div><span class="font-semibold">Days past due:</span> [[ internalDaysPastDue ]]</div>
+      </div>
+      <div class="mt-5 flex justify-end">
+        <button @click="showInternalModal = false" class="rounded-xl bg-neutral-900 px-4 py-2 text-sm text-white">Close</button>
+      </div>
+    </div>
+  </div>
+</transition>
+
+<!-- Credit Bureau Modal -->
+<transition name="modal">
+  <div v-if="showCreditBureauModal"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-base font-semibold">🔍 Credit Bureau Data (Simulated)</h3>
+        <button @click="showCreditBureauModal = false" class="text-2xl text-neutral-400 hover:text-neutral-600">&times;</button>
+      </div>
+      <div class="space-y-2 text-sm">
+        <div><span class="font-semibold">External active loans:</span> [[ externalActiveLoans ]]</div>
+        <div><span class="font-semibold">External outstanding:</span> $[[ externalOutstanding.toLocaleString() ]]</div>
+        <div><span class="font-semibold">External repayment rate:</span> [[ externalRepaymentRate ]]%</div>
+        <div><span class="font-semibold">External days past due:</span> [[ externalDaysPastDue ]] days</div>
+        <div><span class="font-semibold">External recent applications:</span> [[ externalRecentApps ]] in 30 days</div>
+        <div><span class="font-semibold">Institutions:</span> [[ externalInstitutions.join(', ') || 'None' ]]</div>
+      </div>
+      <div class="mt-5 flex justify-end">
+        <button @click="showCreditBureauModal = false" class="rounded-xl bg-neutral-900 px-4 py-2 text-sm text-white">Close</button>
+      </div>
+    </div>
+  </div>
+</transition>
+
+<!-- Copy Toast -->
 <transition name="toast">
   <div v-if="showCopyToast"
     class="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-white shadow-lg">
     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
-      <path fill-rule="evenodd"
-        d="M16.707 5.293a1 1 0 00-1.414 0L8 12.586 4.707 9.293a1 1 0 00-1.414 1.414l4 4a1 1 0 001.414 0l8-8a1 1 0 000-1.414z"
-        clip-rule="evenodd" />
+      <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 00-1.414 0L8 12.586 4.707 9.293a1 1 0 00-1.414 1.414l4 4a1 1 0 001.414 0l8-8a1 1 0 000-1.414z" clip-rule="evenodd" />
     </svg>
     Tracking number copied
   </div>
@@ -241,79 +289,102 @@
 
   createApp({
     setup() {
-      const riskScore = ref(null);
-      const riskLabel = ref("");
-      const trackingNumber = ref("");
-      const decisionStatus = ref("");
-      const decisionReason = ref("");
-      const showRejectionModal = ref(false);
-      const areasPassed = ref([]);
-      const areasFailed = ref([]);
-      const showCopyToast = ref(false);
-      let toastTimer = ref(null);
-      const theme = ref("light");
-
-      // New fields for XAI, anomaly distinction, and credit bureau
-      const xaiExplanation = ref(null);
-      const internalAnomalyScore = ref(0);
-      const mergedAnomalyScore = ref(0);
-      const anomaliesList = ref([]);
-      const creditBureauUsed = ref(false);
+      const riskScore            = ref(0);
+      const riskLabel            = ref("");
+      const trackingNumber       = ref("");
+      const decisionStatus       = ref("");
+      const decisionReason       = ref("");
+      const areasPassed          = ref([]);
+      const areasFailed          = ref([]);
+      const xaiExplanation       = ref(null);
+      const creditBureauUsed     = ref(false);
       const externalInstitutions = ref([]);
-      const externalActiveLoans = ref(0);
-      const externalOutstanding = ref(0);
-      const externalCreditScore = ref(null);
-      const showXaiModal = ref(false);
+      const externalActiveLoans  = ref(0);
+      const externalOutstanding  = ref(0);
+      const externalRepaymentRate = ref(0);
+      const externalDaysPastDue  = ref(0);
+      const externalRecentApps   = ref(0);
+      const internalRiskScore    = ref(null);
+      const internalRiskLabel    = ref("");
+      const showXaiModal         = ref(false);
+      const showCopyToast        = ref(false);
+      const showPayslipModal     = ref(false);
+      const showInternalModal    = ref(false);
+      const showCreditBureauModal = ref(false);
+      const theme                = ref("light");
 
-      const hasAssessment = computed(() => riskScore.value !== null);
+      // Payslip data
+      const payslipName = ref("");
+      const payslipSalary = ref(0);
+      const payslipNationalId = ref("");
+      const payslipDepartment = ref("");
+      const payslipPosition = ref("");
+
+      // Internal borrower data
+      const internalEmploymentSector = ref("");
+      const internalJobTitle = ref("");
+      const internalTotalPrevLoans = ref(0);
+      const internalActiveLoans = ref(0);
+      const internalOutstandingBalance = ref(0);
+      const internalReturnRate = ref(0);
+      const internalDaysPastDue = ref(0);
+
+      const hasAssessment = computed(() => riskScore.value > 0 || decisionStatus.value !== "");
 
       const loadAssessment = () => {
         const raw = localStorage.getItem("financeGuard.lastAssessment");
         if (!raw) return;
         try {
           const data = JSON.parse(raw);
-          riskScore.value = data.risk_score ?? null;
-          riskLabel.value = data.risk_label || "";
+          riskScore.value      = data.risk_score ?? 0;
+          riskLabel.value      = data.risk_label || "";
           trackingNumber.value = data.tracking_number || "";
           decisionStatus.value = data.decision_status || "";
           decisionReason.value = data.decision_reason || "";
-          const feedback = data.area_feedback || { passed: [], failed: [] };
+
+          const feedback = data.area_feedback || data.decision_feedback || { passed: [], failed: [] };
           areasPassed.value = feedback.passed || [];
           areasFailed.value = feedback.failed || [];
-          if (decisionStatus.value === "rejected") {
-            showRejectionModal.value = true;
+
+          xaiExplanation.value = data.xai_explanation || null;
+
+          const bureau = data.credit_bureau || {};
+          creditBureauUsed.value     = !!bureau.used_external_data;
+          externalInstitutions.value = bureau.institutions || [];
+          externalActiveLoans.value  = bureau.external_active_loans || 0;
+          externalOutstanding.value  = bureau.external_outstanding || 0;
+
+          // Capture external details from the bureau data (if present)
+          if (data.external_credit_data) {
+            externalRepaymentRate.value = data.external_credit_data.repayment_rate_elsewhere || 0;
+            externalDaysPastDue.value   = data.external_credit_data.days_past_due_elsewhere || 0;
+            externalRecentApps.value    = data.external_credit_data.recent_applications_elsewhere || 0;
           }
 
-          // XAI explanation
-          if (data.xai_explanation) {
-            xaiExplanation.value = data.xai_explanation;
+          // Internal risk score (if returned)
+          internalRiskScore.value = data.internal_risk_score ?? null;
+          internalRiskLabel.value = data.internal_risk_label || "";
+
+          // Payslip data (if returned)
+          if (data.payslip_data) {
+            payslipName.value = data.payslip_data.name || "";
+            payslipSalary.value = data.payslip_data.salary || 0;
+            payslipNationalId.value = data.payslip_data.national_id || "";
+            payslipDepartment.value = data.payslip_data.department || "";
+            payslipPosition.value = data.payslip_data.position || "";
           }
 
-          // Anomaly distinction
-          if (data.internal_anomaly) {
-            internalAnomalyScore.value = data.internal_anomaly.anomaly_score ?? 0;
-          }
-          if (data.merged_anomaly) {
-            mergedAnomalyScore.value = data.merged_anomaly.anomaly_score ?? 0;
-            anomaliesList.value = data.merged_anomaly.anomalies || [];
-          } else {
-            // fallback to main anomaly object if no merged_anomaly
-            if (data.anomaly_detection) {
-              mergedAnomalyScore.value = data.anomaly_detection.anomaly_score ?? 0;
-              anomaliesList.value = data.anomaly_detection.anomalies || [];
-            }
-          }
-
-          // Credit bureau integration
-          if (data.credit_bureau) {
-            creditBureauUsed.value = data.credit_bureau.used_external_data || false;
-            externalInstitutions.value = data.credit_bureau.institutions || [];
-            externalActiveLoans.value = data.credit_bureau.external_active_loans || 0;
-            externalOutstanding.value = data.credit_bureau.external_outstanding || 0;
-            if (data.credit_bureau.external_credit_score) externalCreditScore.value = data.credit_bureau.external_credit_score;
-          }
+          // Internal borrower data (from mfi_details or separate)
+          const mfi = data.mfi_details || {};
+          internalEmploymentSector.value = mfi.employment_sector || "";
+          internalJobTitle.value = mfi.job_title || "";
+          internalTotalPrevLoans.value = mfi.total_prev_loans || 0;
+          internalActiveLoans.value = mfi.active_loans || 0;
+          internalOutstandingBalance.value = mfi.outstanding || 0;
+          internalReturnRate.value = mfi.return_rate || 0;
+          internalDaysPastDue.value = mfi.days_past_due || 0;
         } catch (err) {
-          riskScore.value = null;
+          riskScore.value = 0;
         }
       };
 
@@ -321,79 +392,55 @@
         if (!trackingNumber.value) return;
         try {
           await navigator.clipboard.writeText(trackingNumber.value);
-          if (toastTimer) clearTimeout(toastTimer);
           showCopyToast.value = true;
-          setTimeout(() => {
-            showCopyToast.value = false;
-          }, 4000);
-        } catch {
-          return;
-        }
+          setTimeout(() => { showCopyToast.value = false; }, 3500);
+        } catch { /* ignore */ }
       };
 
       const riskClass = computed(() => {
-        if (riskLabel.value === "High") return "text-red-500";
+        if (riskLabel.value === "High")   return "text-red-500";
         if (riskLabel.value === "Medium") return "text-amber-500";
         return "text-emerald-500";
       });
 
       const riskColor = computed(() => {
-        if (riskLabel.value === "High") return "#ef4444";
+        if (riskLabel.value === "High")   return "#ef4444";
         if (riskLabel.value === "Medium") return "#f59e0b";
         return "#10b981";
       });
 
       const toggleTheme = () => {
         theme.value = theme.value === "light" ? "dark" : "light";
-        document.documentElement.classList.toggle(
-          "dark",
-          theme.value === "dark",
-        );
+        document.documentElement.classList.toggle("dark", theme.value === "dark");
         localStorage.setItem("theme", theme.value);
       };
 
       const themeLabel = computed(() =>
-        theme.value === "light" ? "Dark mode" : "Light mode",
+        theme.value === "light" ? "Dark mode" : "Light mode"
       );
 
       onMounted(() => {
         const saved = localStorage.getItem("theme");
         if (saved) {
           theme.value = saved;
-          document.documentElement.classList.toggle(
-            "dark",
-            theme.value === "dark",
-          );
+          document.documentElement.classList.toggle("dark", theme.value === "dark");
         }
         loadAssessment();
       });
 
       return {
-        riskScore,
-        riskLabel,
-        trackingNumber,
-        decisionStatus,
-        decisionReason,
-        hasAssessment,
-        showRejectionModal,
-        areasPassed,
-        areasFailed,
-        showCopyToast,
-        copyTrackingNumber,
-        riskClass,
-        riskColor,
-        toggleTheme,
-        themeLabel,
-        xaiExplanation,
-        internalAnomalyScore,
-        mergedAnomalyScore,
-        anomaliesList,
-        creditBureauUsed,
-        externalInstitutions,
-        externalActiveLoans,
-        externalOutstanding,
-        externalCreditScore,
-        showXaiModal,
+        riskScore, riskLabel, trackingNumber, decisionStatus, decisionReason,
+        hasAssessment, areasPassed, areasFailed,
+        xaiExplanation, showXaiModal,
+        creditBureauUsed, externalInstitutions, externalActiveLoans, externalOutstanding,
+        externalRepaymentRate, externalDaysPastDue, externalRecentApps,
+        internalRiskScore, internalRiskLabel,
+        showCopyToast, copyTrackingNumber,
+        riskClass, riskColor, toggleTheme, themeLabel,
+        showPayslipModal, showInternalModal, showCreditBureauModal,
+        payslipName, payslipSalary, payslipNationalId, payslipDepartment, payslipPosition,
+        internalEmploymentSector, internalJobTitle, internalTotalPrevLoans, internalActiveLoans,
+        internalOutstandingBalance, internalReturnRate, internalDaysPastDue,
       };
     },
     delimiters: ["[[", "]]"],

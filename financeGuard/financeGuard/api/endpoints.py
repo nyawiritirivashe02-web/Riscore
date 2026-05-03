@@ -846,19 +846,19 @@ async def seed_data():
 
 MOCK_CREDIT_DATA: dict[str, dict] = {
     # ── HIGH RISK: active loans at 2 MFIs, 9 recent applications, poor profile
-    "12-654321B34": {
-        "full_name": "Panashe Nyawiri",
-        "active_loans_elsewhere": 2,
-        "outstanding_elsewhere": 4250.0,
-        "repayment_rate_elsewhere": 62.0,
-        "days_past_due_elsewhere": 45,
-        "recent_applications_elsewhere": 9,
-        "unsettled_loans_elsewhere": 2,
-        "institutions": ["Zambuko Trust", "MicroKing Finance"],
-        "credit_score": 28,
-        "risk_flag": "HIGH",
-        "notes": "Multiple concurrent loans; frequent applications; delinquent at Zambuko Trust.",
-    },
+   "12-654321B34": {
+    "full_name": "Panashe Nyawiri",
+    "active_loans_elsewhere": 1,
+    "outstanding_elsewhere": 300.0,
+    "repayment_rate_elsewhere": 98.0,
+    "days_past_due_elsewhere": 0,
+    "recent_applications_elsewhere": 0,
+    "unsettled_loans_elsewhere": 0,
+    "institutions": ["Zambuko Trust"],
+    "credit_score": 78,
+    "risk_flag": "LOW",
+    "notes": "One small active loan, good repayment record.",
+},
     # ── MEDIUM RISK: one loan elsewhere, mostly on track
     "63-123456A12": {
         "full_name": "Theresa Machache",
@@ -1053,17 +1053,6 @@ def _merge_external_data(
 ) -> tuple[float, float, float, float, float, int, int]:
     """
     Merge internal FinanceGuard borrower metrics with external credit bureau data.
-
-    Merge logic:
-      active_loans      — sum (borrower has all loans, internal + external)
-      outstanding       — sum (total financial exposure across all lenders)
-      repayment_rate    — weighted average by loan count (not a simple average)
-      days_past_due     — worst value wins (most conservative approach)
-      total_loans       — sum (complete history across all institutions)
-      recent_apps       — sum (total application frequency across all MFIs)
-      unsettled_loans   — sum (all unresolved obligations)
-
-    Returns updated (al, ob, rr, dp, tr, recent_assessment_count, unsettled_loan_count).
     """
     ext_al       = float(external.get("active_loans_elsewhere", 0))
     ext_ob       = float(external.get("outstanding_elsewhere", 0))
@@ -1075,21 +1064,19 @@ def _merge_external_data(
     merged_al = al + ext_al
     merged_ob = ob + ext_ob
 
-    # Weighted average repayment rate — weighted by number of loans at each source
     total_count = tr + ext_al
     if total_count > 0:
         merged_rr = ((rr * tr) + (ext_rr * ext_al)) / total_count
     else:
         merged_rr = ext_rr
 
-    merged_dp         = max(dp, ext_dp)                        # worst delinquency
+    merged_dp         = max(dp, ext_dp)
     merged_tr         = tr + ext_al                            # full loan history
-    merged_recent     = recent_assessment_count + ext_recent   # total application frequency
+    # Do NOT merge external recent applications – keep internal count only
+    merged_recent     = recent_assessment_count                # internal only
     merged_unsettled  = unsettled_loan_count + ext_unsettled   # total unresolved
 
     return merged_al, merged_ob, merged_rr, merged_dp, merged_tr, merged_recent, merged_unsettled
-
-
 # --------------------------------------------------------------
 #  Flask Routes
 # --------------------------------------------------------------
@@ -1719,7 +1706,21 @@ async def assess():
     db_outstanding_balance = float(ob) if borrower_exists else 0.0
     unsettled_loan_count = int(pending_unpaid_loans) if borrower_exists else 0
     recent_assessment_count = aggregated_recent_applications
-
+    # ── Compute internal‑only risk score (before merging external data) ──
+    internal_score, internal_label, internal_probs = await score_borrower_async(
+        salary, sec, loan_reason,
+        db_total_loans,           # total previous loans (local)
+        db_active_loans,          # active loans (local)
+        db_outstanding_balance,   # outstanding balance (local)
+        am,                       # avg loan amount (local)
+        rr,                       # return rate (local)
+        dp,                       # days past due (local)
+        ms,                       # mfi diversity score (local)
+        loan_amount               # requested loan amount
+    )
+    # Store the internal scores for later use in the JSON response
+    internal_risk_score = internal_score
+    internal_risk_label = internal_label
     # ── Credit bureau lookup & merge ─────────────────────────────────────────
     # Snapshot internal-only values BEFORE merge (for comparison display)
     internal_al = al
@@ -1735,13 +1736,13 @@ async def assess():
         if external_credit_data:
             used_external_data = True
             external_institutions = external_credit_data.get("institutions", [])
-            al, ob, rr, dp, tr, recent_assessment_count, unsettled_loan_count = _merge_external_data(
-                al=al, ob=ob, rr=rr, dp=dp, tr=tr,
-                recent_assessment_count=recent_assessment_count,
-                unsettled_loan_count=unsettled_loan_count,
-                external=external_credit_data,
-            )
-            log.info(f"Credit bureau merge for {national_id}: al={al}, ob={ob}, rr={rr:.1f}, dp={dp}")
+        al, ob, rr, dp, tr, recent_assessment_count, unsettled_loan_count = _merge_external_data(
+    al=al, ob=ob, rr=rr, dp=dp, tr=tr,
+    recent_assessment_count=recent_assessment_count,
+    unsettled_loan_count=unsettled_loan_count,
+    external=external_credit_data,
+)            
+        log.info(f"Credit bureau merge for {national_id}: al={al}, ob={ob}, rr={rr:.1f}, dp={dp}")
 
     score, label, probs = await score_borrower_async(salary, sec, loan_reason, tr, al, ob, am, rr, dp, ms, loan_amount)
     area_feedback: dict[str, list[dict[str, str]]] = {"failed": [], "passed": []}
@@ -1763,29 +1764,37 @@ async def assess():
     )
     try:
         async with AsyncSessionFactory() as session:
-            recent_application_window = recent_assessment_count + 1
+            # Use internal recent applications for anomaly detection
+            internal_window = aggregated_recent_applications + 1
             anomaly_eval = evaluate_application_anomalies(
                 salary=salary, total_loans=tr, active_loans=al, outstanding=ob, return_rate=rr,
                 days_due=dp, is_existing_borrower=bool(existing_borrower_id),
-                recent_application_count=recent_application_window, loan_amount=loan_amount,
-                unsettled_loan_count=unsettled_loan_count
-            )
+                recent_application_count=internal_window,  # ← internal only
+                loan_amount=loan_amount,
+                unsettled_loan_count=unsettled_loan_count   # keep merged unsettled? or internal? decide
+            )            
             risk_adjustment = min(20.0, float(unsettled_loan_count) * 8.0)
             if risk_adjustment > 0:
                 score = min(100.0, score + risk_adjustment)
+            # Define the window count for user feedback (internal only)
+            recent_application_window = aggregated_recent_applications + 1
+
             area_context = {
-                "salary": salary, "loan_amount": loan_amount, "total_loans": tr, "active_loans": al,
-                "outstanding": ob, "return_rate": rr, "days_due": dp,
-                "recent_application_count": recent_application_window,
+                "salary": salary,
+                "loan_amount": loan_amount,
+                "total_loans": tr,
+                "active_loans": al,
+                "outstanding": ob,
+                "return_rate": rr,
+                "days_due": dp,
+                "recent_application_count": recent_application_window,   # now defined
                 "unsettled_loan_count": unsettled_loan_count,
                 "is_existing_borrower": bool(existing_borrower_id)
             }
             area_feedback = _build_area_feedback(anomalies=anomaly_eval["anomalies"], context=area_context, label=label, score=score)
             anomaly_codes = ", ".join(a["code"] for a in anomaly_eval["anomalies"]) if anomaly_eval["anomalies"] else "none"
-            decision_status, decision_reason = decide_application(score=score, label=label, anomaly_score=anomaly_eval["anomaly_score"], anomaly_codes=anomaly_codes)
-            
-            # ============= FIX: Determine display score for consistency =============
-            display_score = anomaly_eval["anomaly_score"] if anomaly_eval["anomaly_score"] > 0 else score
+            decision_status, decision_reason = decide_application(score=score, label=label, anomaly_score=anomaly_eval["anomaly_score"], anomaly_codes=anomaly_codes)            # ============= FIX: Determine display score for consistency =============
+            display_score = score
             if display_score >= 70:
                 display_label = "High"
             elif display_score >= 40:
@@ -1864,6 +1873,15 @@ async def assess():
     # Return DISPLAY score to user
     return jsonify({
         "success": True, "borrower_id": bid, "full_name": full_name, "salary": salary,
+        "internal_risk_score": internal_risk_score,
+        "internal_risk_label": internal_risk_label,
+            "payslip_data": {
+            "name": payslip_name,
+            "salary": salary,
+            "national_id": national_id,          # from the request (normalised)
+            "department": payslip_department,
+            "position": payslip_position
+        },
         "loan_amount": loan_amount, "loan_reason": loan_reason, "tracking_number": tracking_number,
         "decision_status": decision_status, "decision_reason": decision_reason,
         "decision_reason_base": decision_reason_base,
