@@ -16,10 +16,6 @@
             <div class="text-5xl font-semibold mt-1">[[riskScore.toFixed(1)]]</div>
             <div class="mt-2 text-sm font-semibold" :class="riskClass">[[riskLabel]] risk</div>
           </div>
-          <button v-if="xaiExplanation && xaiExplanation.available" @click="showXaiModal = true"
-            class="shrink-0 rounded-full bg-neutral-200 px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-300 dark:bg-neutral-800 dark:text-neutral-200">
-            Why this score?
-          </button>
         </div>
         <div class="mt-4">
           <div class="flex items-center justify-between text-xs text-neutral-400 mb-1">
@@ -29,23 +25,6 @@
             <div class="h-2.5 rounded-full transition-all duration-500"
               :style="{ width: riskScore + '%', background: riskColor }"></div>
           </div>
-        </div>
-
-        <!-- Clickable badges -->
-        <div class="mt-4 flex flex-wrap gap-2">
-          <button @click="showPayslipModal = true"
-            class="rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400 hover:bg-neutral-200 cursor-pointer">
-            📄 Payslip data
-          </button>
-          <button @click="showInternalModal = true"
-            class="rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400 hover:bg-neutral-200 cursor-pointer">
-            🏦 Internal records
-          </button>
-          <button v-if="creditBureauUsed" @click="showCreditBureauModal = true"
-            class="rounded-full bg-blue-100 px-3 py-1 text-xs text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 hover:bg-blue-200 cursor-pointer">
-            🔍 Credit bureau included
-          </button>
-          <span v-else class="rounded-full bg-neutral-100 px-3 py-1 text-xs text-neutral-400">No credit bureau data</span>
         </div>
       </div>
 
@@ -76,7 +55,7 @@
         <p class="mt-1 text-xs text-neutral-400">This data was merged with your application to produce the final score.</p>
       </div>
 
-      <!-- Tracking Number and Decision (unchanged) -->
+      <!-- Tracking Number and Decision -->
       <div v-if="trackingNumber"
         class="rounded-2xl border border-dashed border-neutral-300 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-950">
         <div class="flex items-center justify-between">
@@ -92,6 +71,7 @@
         <p class="mt-2 text-xs text-neutral-400">Save this number to check your application status.</p>
       </div>
 
+      <!-- Rejection / Approval status -->
       <div class="rounded-2xl border p-4"
         :class="decisionStatus === 'approved'
           ? 'border-emerald-200 bg-emerald-50/50 dark:border-emerald-900 dark:bg-emerald-950/20'
@@ -100,39 +80,15 @@
           :class="decisionStatus === 'approved' ? 'text-emerald-600' : 'text-red-600'">
           [[ decisionStatus === 'approved' ? '✓ Approved' : '✗ Not Approved' ]]
         </span>
-        <p class="mt-2 text-sm"
-          :class="decisionStatus === 'approved' ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300'">
-          [[ decisionReason ]]
-        </p>
-      </div>
 
-      <!-- Areas to improve / cleared (unchanged) -->
-      <div v-if="decisionStatus !== 'approved' && areasFailed.length"
-        class="rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-950">
-        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500 mb-3">Areas to improve</p>
-        <ul class="space-y-2">
-          <li v-for="area in areasFailed" :key="area.title" class="flex items-start gap-2 text-sm">
-            <span class="mt-0.5 text-red-400">✗</span>
-            <div>
-              <span class="font-medium text-neutral-800 dark:text-neutral-200">[[ area.title ]]</span>
-              <span class="block text-xs text-neutral-500 mt-0.5">[[ area.detail ]]</span>
-            </div>
-          </li>
-        </ul>
-      </div>
-
-      <div v-if="areasPassed.length"
-        class="rounded-2xl border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-950">
-        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-neutral-500 mb-3">Areas cleared</p>
-        <ul class="space-y-2">
-          <li v-for="area in areasPassed" :key="area.title" class="flex items-start gap-2 text-sm">
-            <span class="mt-0.5 text-emerald-500">✓</span>
-            <div>
-              <span class="font-medium text-neutral-800 dark:text-neutral-200">[[ area.title ]]</span>
-              <span class="block text-xs text-neutral-500 mt-0.5">[[ area.detail ]]</span>
-            </div>
-          </li>
-        </ul>
+        <!-- Direct explanation for rejected applications (user‑friendly, no technical paragraph) -->
+        <div v-if="decisionStatus !== 'approved' && xaiExplanation && xaiExplanation.user_friendly"
+             class="mt-4 rounded-xl bg-neutral-100 p-4 dark:bg-neutral-800">
+          <div class="whitespace-pre-line text-sm text-neutral-700 dark:text-neutral-300">
+            [[ xaiExplanation.user_friendly ]]
+          </div>
+          <p class="mt-2 text-xs text-neutral-400">Powered by your application data and our AI model.</p>
+        </div>
       </div>
 
     </div>
@@ -147,129 +103,6 @@
     </div>
   </section>
 </div>
-
-<!-- XAI Modal (unchanged) -->
-<transition name="modal">
-  <div v-if="showXaiModal"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-    <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900">
-      <div class="flex items-start justify-between mb-4">
-        <div>
-          <h3 class="text-base font-semibold">Why this risk score?</h3>
-          <p class="text-xs text-neutral-400 mt-0.5">Key factors that influenced your assessment</p>
-        </div>
-        <button @click="showXaiModal = false" class="text-2xl text-neutral-400 hover:text-neutral-600 leading-none">&times;</button>
-      </div>
-      <div v-if="xaiExplanation && xaiExplanation.available" class="space-y-4">
-        <div class="rounded-xl bg-neutral-50 p-3 dark:bg-neutral-800">
-          <div class="text-xs text-neutral-500 mb-1">Model prediction</div>
-          <div class="font-semibold text-sm">
-            <span :class="xaiExplanation.predicted_label === 'High' ? 'text-red-500' : xaiExplanation.predicted_label === 'Medium' ? 'text-amber-500' : 'text-emerald-500'">
-              [[ xaiExplanation.predicted_label ]] risk
-            </span>
-            <span class="text-neutral-400 font-normal"> — [[ xaiExplanation.confidence ]]% confidence</span>
-          </div>
-        </div>
-        <div>
-          <div class="text-xs font-semibold uppercase tracking-[0.15em] text-neutral-500 mb-2">Top factors</div>
-          <div class="space-y-2">
-            <div v-for="factor in xaiExplanation.factors" :key="factor.feature"
-              class="flex items-center gap-3 rounded-lg border border-neutral-100 p-3 dark:border-neutral-800">
-              <div class="flex-1 min-w-0">
-                <div class="text-xs font-mono text-neutral-600 dark:text-neutral-400 truncate">[[ factor.feature ]]</div>
-                <div class="text-xs mt-0.5" :class="factor.direction === 'increases' ? 'text-red-500' : 'text-emerald-500'">
-                  [[ factor.direction === 'increases' ? '↑ increases risk' : '↓ decreases risk' ]]
-                </div>
-              </div>
-              <div class="text-sm font-semibold shrink-0"
-                :class="factor.direction === 'increases' ? 'text-red-500' : 'text-emerald-500'">
-                [[ (factor.weight * 100).toFixed(1) ]]%
-              </div>
-            </div>
-          </div>
-        </div>
-        <p class="text-xs text-neutral-400">Explanation generated using LIME (Local Interpretable Model-Agnostic Explanations).</p>
-      </div>
-      <div v-else class="text-sm text-neutral-500 py-2">Explanation not available for this assessment.</div>
-      <div class="mt-5 flex justify-end">
-        <button @click="showXaiModal = false"
-          class="rounded-xl bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 dark:bg-white dark:text-neutral-900">Close</button>
-      </div>
-    </div>
-  </div>
-</transition>
-
-<!-- Payslip Data Modal -->
-<transition name="modal">
-  <div v-if="showPayslipModal"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-base font-semibold">📄 Payslip Information</h3>
-        <button @click="showPayslipModal = false" class="text-2xl text-neutral-400 hover:text-neutral-600">&times;</button>
-      </div>
-      <div class="space-y-2 text-sm">
-        <div><span class="font-semibold">Name:</span> [[ payslipName ]]</div>
-        <div><span class="font-semibold">Net Pay (USD):</span> $[[ payslipSalary.toFixed(2) ]]</div>
-        <div><span class="font-semibold">National ID:</span> [[ payslipNationalId ]]</div>
-        <div><span class="font-semibold">Department:</span> [[ payslipDepartment ]]</div>
-        <div><span class="font-semibold">Position:</span> [[ payslipPosition ]]</div>
-      </div>
-      <div class="mt-5 flex justify-end">
-        <button @click="showPayslipModal = false" class="rounded-xl bg-neutral-900 px-4 py-2 text-sm text-white">Close</button>
-      </div>
-    </div>
-  </div>
-</transition>
-
-<!-- Internal Records Modal -->
-<transition name="modal">
-  <div v-if="showInternalModal"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-base font-semibold">🏦 Internal Records (Your MFI)</h3>
-        <button @click="showInternalModal = false" class="text-2xl text-neutral-400 hover:text-neutral-600">&times;</button>
-      </div>
-      <div class="space-y-2 text-sm">
-        <div><span class="font-semibold">Employment sector:</span> [[ internalEmploymentSector ]]</div>
-        <div><span class="font-semibold">Job title:</span> [[ internalJobTitle ]]</div>
-        <div><span class="font-semibold">Total previous loans:</span> [[ internalTotalPrevLoans ]]</div>
-        <div><span class="font-semibold">Active loans:</span> [[ internalActiveLoans ]]</div>
-        <div><span class="font-semibold">Outstanding balance:</span> $[[ internalOutstandingBalance.toLocaleString() ]]</div>
-        <div><span class="font-semibold">Repayment rate:</span> [[ internalReturnRate ]]%</div>
-        <div><span class="font-semibold">Days past due:</span> [[ internalDaysPastDue ]]</div>
-      </div>
-      <div class="mt-5 flex justify-end">
-        <button @click="showInternalModal = false" class="rounded-xl bg-neutral-900 px-4 py-2 text-sm text-white">Close</button>
-      </div>
-    </div>
-  </div>
-</transition>
-
-<!-- Credit Bureau Modal -->
-<transition name="modal">
-  <div v-if="showCreditBureauModal"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-    <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-base font-semibold">🔍 Credit Bureau Data (Simulated)</h3>
-        <button @click="showCreditBureauModal = false" class="text-2xl text-neutral-400 hover:text-neutral-600">&times;</button>
-      </div>
-      <div class="space-y-2 text-sm">
-        <div><span class="font-semibold">External active loans:</span> [[ externalActiveLoans ]]</div>
-        <div><span class="font-semibold">External outstanding:</span> $[[ externalOutstanding.toLocaleString() ]]</div>
-        <div><span class="font-semibold">External repayment rate:</span> [[ externalRepaymentRate ]]%</div>
-        <div><span class="font-semibold">External days past due:</span> [[ externalDaysPastDue ]] days</div>
-        <div><span class="font-semibold">External recent applications:</span> [[ externalRecentApps ]] in 30 days</div>
-        <div><span class="font-semibold">Institutions:</span> [[ externalInstitutions.join(', ') || 'None' ]]</div>
-      </div>
-      <div class="mt-5 flex justify-end">
-        <button @click="showCreditBureauModal = false" class="rounded-xl bg-neutral-900 px-4 py-2 text-sm text-white">Close</button>
-      </div>
-    </div>
-  </div>
-</transition>
 
 <!-- Copy Toast -->
 <transition name="toast">
@@ -306,21 +139,17 @@
       const externalRecentApps   = ref(0);
       const internalRiskScore    = ref(null);
       const internalRiskLabel    = ref("");
-      const showXaiModal         = ref(false);
       const showCopyToast        = ref(false);
-      const showPayslipModal     = ref(false);
-      const showInternalModal    = ref(false);
-      const showCreditBureauModal = ref(false);
       const theme                = ref("light");
 
-      // Payslip data
+      // Payslip data (still needed for potential future use, but no modal)
       const payslipName = ref("");
       const payslipSalary = ref(0);
       const payslipNationalId = ref("");
       const payslipDepartment = ref("");
       const payslipPosition = ref("");
 
-      // Internal borrower data
+      // Internal borrower data (still needed for internal risk score display)
       const internalEmploymentSector = ref("");
       const internalJobTitle = ref("");
       const internalTotalPrevLoans = ref(0);
@@ -354,18 +183,16 @@
           externalActiveLoans.value  = bureau.external_active_loans || 0;
           externalOutstanding.value  = bureau.external_outstanding || 0;
 
-          // Capture external details from the bureau data (if present)
           if (data.external_credit_data) {
             externalRepaymentRate.value = data.external_credit_data.repayment_rate_elsewhere || 0;
             externalDaysPastDue.value   = data.external_credit_data.days_past_due_elsewhere || 0;
             externalRecentApps.value    = data.external_credit_data.recent_applications_elsewhere || 0;
           }
 
-          // Internal risk score (if returned)
           internalRiskScore.value = data.internal_risk_score ?? null;
           internalRiskLabel.value = data.internal_risk_label || "";
 
-          // Payslip data (if returned)
+          // Still load payslip data (not used in UI now, but kept for completeness)
           if (data.payslip_data) {
             payslipName.value = data.payslip_data.name || "";
             payslipSalary.value = data.payslip_data.salary || 0;
@@ -374,16 +201,18 @@
             payslipPosition.value = data.payslip_data.position || "";
           }
 
-          // Internal borrower data (from mfi_details or separate)
+          // MFI details – still loaded for internal risk score display
           const mfi = data.mfi_details || {};
           internalEmploymentSector.value = mfi.employment_sector || "";
           internalJobTitle.value = mfi.job_title || "";
-          internalTotalPrevLoans.value = mfi.total_prev_loans || 0;
-          internalActiveLoans.value = mfi.active_loans || 0;
-          internalOutstandingBalance.value = mfi.outstanding || 0;
-          internalReturnRate.value = mfi.return_rate || 0;
-          internalDaysPastDue.value = mfi.days_past_due || 0;
+          internalTotalPrevLoans.value = mfi.total_prev_loans ?? 0;
+          internalActiveLoans.value = mfi.active_loans ?? 0;
+          internalOutstandingBalance.value = mfi.outstanding ?? 0;
+          internalReturnRate.value = mfi.return_rate ?? 0;
+          internalDaysPastDue.value = mfi.days_past_due ?? 0;
+
         } catch (err) {
+          console.error("Failed to load assessment:", err);
           riskScore.value = 0;
         }
       };
@@ -431,13 +260,12 @@
       return {
         riskScore, riskLabel, trackingNumber, decisionStatus, decisionReason,
         hasAssessment, areasPassed, areasFailed,
-        xaiExplanation, showXaiModal,
+        xaiExplanation,
         creditBureauUsed, externalInstitutions, externalActiveLoans, externalOutstanding,
         externalRepaymentRate, externalDaysPastDue, externalRecentApps,
         internalRiskScore, internalRiskLabel,
         showCopyToast, copyTrackingNumber,
         riskClass, riskColor, toggleTheme, themeLabel,
-        showPayslipModal, showInternalModal, showCreditBureauModal,
         payslipName, payslipSalary, payslipNationalId, payslipDepartment, payslipPosition,
         internalEmploymentSector, internalJobTitle, internalTotalPrevLoans, internalActiveLoans,
         internalOutstandingBalance, internalReturnRate, internalDaysPastDue,
