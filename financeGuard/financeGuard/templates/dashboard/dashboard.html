@@ -26,13 +26,10 @@
     }
   </script>
   <style>
-    /* ── Sidebar collapse ── */
     .sidebar { width: 240px; transition: width 0.22s cubic-bezier(.4,0,.2,1); }
     .sidebar.collapsed { width: 64px; }
     .sidebar .nav-label { transition: opacity 0.15s, width 0.15s; white-space: nowrap; overflow: hidden; }
     .sidebar.collapsed .nav-label { opacity: 0; width: 0; pointer-events: none; }
-
-    /* ── Active nav indicator ── */
     .nav-item { position: relative; }
     .nav-item.active::before {
       content: '';
@@ -42,29 +39,20 @@
       background: #3b82f6;
       border-radius: 0 2px 2px 0;
     }
-
-    /* ── Monospace for data/codes ── */
     .badge { font-size: 10px; letter-spacing: 0.05em; font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace; }
     .mono  { font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace; }
-
-    /* ── Page entry animation ── */
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(8px); }
       to   { opacity: 1; transform: translateY(0); }
     }
     .fade-up { animation: fadeUp 0.25s ease forwards; }
-
-    /* ── Scrollbar ── */
     ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
     .dark ::-webkit-scrollbar-thumb { background: #374151; }
-
-    /* ── Table row hover ── */
     .row-hover:hover { background: rgba(59,130,246,0.04); }
   </style>
 </head>
-
 <body class="h-full bg-neutral-50 text-neutral-900 dark:bg-neutral-950 dark:text-neutral-100">
 <div id="app" class="flex h-full min-h-screen">
 
@@ -74,494 +62,134 @@
     'border-r border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900',
     sidebarCollapsed ? 'collapsed' : ''
   ]">
-
-    <!-- Logo -->
     <div class="flex items-center gap-3 px-4 h-16 border-b border-neutral-200 dark:border-neutral-800">
       <div class="w-8 h-8 rounded-lg bg-blue-50 border border-blue-200 dark:bg-blue-500/20 dark:border-blue-500/30 flex items-center justify-center flex-shrink-0">
-        <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-        </svg>
+        <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
       </div>
-      <div class="nav-label">
-        <div class="text-[10px] uppercase tracking-[0.2em] text-neutral-400">FinanceGuard</div>
-        <div class="text-sm font-semibold text-neutral-900 dark:text-white leading-tight">Back Office</div>
-      </div>
+      <div class="nav-label"><div class="text-[10px] uppercase tracking-[0.2em] text-neutral-400">FinanceGuard</div><div class="text-sm font-semibold text-neutral-900 dark:text-white leading-tight">Back Office</div></div>
     </div>
-
-    <!-- Nav items -->
     <nav class="flex-1 px-2 py-4 space-y-0.5 overflow-y-auto">
-      <div class="px-2 mb-3">
-        <span class="nav-label text-[9px] uppercase tracking-[0.2em] text-neutral-400 font-semibold">Main</span>
-      </div>
-
+      <div class="px-2 mb-3"><span class="nav-label text-[9px] uppercase tracking-[0.2em] text-neutral-400 font-semibold">Main</span></div>
       <button v-for="item in navItems" :key="item.id"
         @click="activeTab = item.id"
         :class="[
           'nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all duration-150',
-          activeTab === item.id
-            ? 'active bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400'
-            : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200'
+          activeTab === item.id ? 'active bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400' : 'text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200'
         ]">
         <span class="w-5 h-5 flex-shrink-0 flex items-center justify-center" v-html="item.icon"></span>
         <span class="nav-label font-medium">[[ item.label ]]</span>
-        <span v-if="item.badge && !sidebarCollapsed"
-              class="badge ml-auto px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">
-          [[ item.badge ]]
-        </span>
+        <span v-if="item.badge && !sidebarCollapsed" class="badge ml-auto px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400">[[ item.badge ]]</span>
       </button>
-
-      <!-- System section -->
-      <div class="px-2 mt-5 mb-3">
-        <span class="nav-label text-[9px] uppercase tracking-[0.2em] text-neutral-400 font-semibold">System</span>
-      </div>
-
-      <button @click="toggleTheme"
-        class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 transition-all duration-150">
+      <div class="px-2 mt-5 mb-3"><span class="nav-label text-[9px] uppercase tracking-[0.2em] text-neutral-400 font-semibold">System</span></div>
+      <button @click="toggleTheme" class="nav-item w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-200 transition-all duration-150">
         <span class="w-5 h-5 flex-shrink-0">
-          <svg v-if="theme === 'dark'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
-          </svg>
-          <svg v-else fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-          </svg>
+          <svg v-if="theme === 'dark'" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <svg v-else fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
         </span>
         <span class="nav-label font-medium">[[ themeLabel ]]</span>
       </button>
     </nav>
-
-    <!-- Collapse toggle -->
     <div class="border-t border-neutral-200 dark:border-neutral-800 p-2">
-      <button @click="sidebarCollapsed = !sidebarCollapsed"
-        class="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:text-neutral-300 dark:hover:bg-neutral-800 transition-all">
-        <svg class="w-4 h-4 transition-transform duration-200" :class="sidebarCollapsed ? 'rotate-180' : ''"
-             fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
-        </svg>
+      <button @click="sidebarCollapsed = !sidebarCollapsed" class="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-xs text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:text-neutral-300 dark:hover:bg-neutral-800 transition-all">
+        <svg class="w-4 h-4 transition-transform duration-200" :class="sidebarCollapsed ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
         <span class="nav-label">Collapse</span>
       </button>
     </div>
   </aside>
 
-  <!-- MAIN -->
+  <!-- MAIN CONTENT -->
   <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
-
-    <!-- Top bar -->
     <header class="h-16 flex items-center justify-between px-6 border-b border-neutral-200 bg-white/80 backdrop-blur sticky top-0 z-20 dark:border-neutral-800 dark:bg-neutral-900/80">
-      <div>
-        <h1 class="text-base font-semibold">[[ navItems.find(n => n.id === activeTab)?.label ]]</h1>
-        <p class="text-xs text-neutral-500 mono">[[ new Date().toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'short', day:'numeric'}) ]]</p>
-      </div>
+      <div><h1 class="text-base font-semibold">[[ navItems.find(n => n.id === activeTab)?.label ]]</h1><p class="text-xs text-neutral-500 mono">[[ new Date().toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'short', day:'numeric'}) ]]</p></div>
       <div class="flex items-center gap-3">
-        <button @click="logout"
-          class="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 shadow-sm transition dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700">
-          Logout
-        </button>
-        <div class="relative">
-          <div class="w-8 h-8 rounded-full bg-blue-100 border border-blue-200 dark:bg-blue-500/20 dark:border-blue-500/40 flex items-center justify-center text-blue-600 dark:text-blue-400 text-xs font-bold">AD</div>
-          <div class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-white dark:border-neutral-900"></div>
-        </div>
-        <div class="hidden sm:block">
-          <div class="text-xs font-semibold">[[ currentUser?.full_name || 'Admin' ]]</div>
-          <div class="text-[10px] text-neutral-500">Risk Officer</div>
-        </div>
+        <button @click="logout" class="hidden sm:inline-flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 shadow-sm transition dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700">Logout</button>
+        <div class="relative"><div class="w-8 h-8 rounded-full bg-blue-100 border border-blue-200 dark:bg-blue-500/20 dark:border-blue-500/40 flex items-center justify-center text-blue-600 dark:text-blue-400 text-xs font-bold">AD</div><div class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-white dark:border-neutral-900"></div></div>
+        <div class="hidden sm:block"><div class="text-xs font-semibold">[[ currentUser?.full_name || 'Admin' ]]</div><div class="text-[10px] text-neutral-500">Risk Officer</div></div>
       </div>
     </header>
 
-    <!-- Page content -->
     <main class="flex-1 overflow-y-auto p-6">
-
       <!-- DASHBOARD TAB -->
       <section v-if="activeTab === 'dashboard'" class="space-y-6 fade-up">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 class="text-sm font-semibold">Portfolio overview</h2>
-            <p class="text-xs text-neutral-500">
-              <span v-if="autoRefreshEnabled">Auto-refresh every [[ autoRefreshSeconds ]]s</span>
-              <span v-else class="text-neutral-400">Auto-refresh paused</span>
-              <span v-if="lastUpdated" class="mono text-[10px] text-neutral-400">- Updated [[ lastUpdated ]]</span>
-            </p>
-          </div>
+          <div><h2 class="text-sm font-semibold">Portfolio overview</h2><p class="text-xs text-neutral-500"><span v-if="autoRefreshEnabled">Auto-refresh every [[ autoRefreshSeconds ]]s</span><span v-else class="text-neutral-400">Auto-refresh paused</span><span v-if="lastUpdated" class="mono text-[10px] text-neutral-400">- Updated [[ lastUpdated ]]</span></p></div>
           <div class="flex flex-wrap items-center gap-2">
             <div class="flex items-center gap-1 rounded-xl border border-neutral-200 bg-white p-1 text-[11px] font-semibold text-neutral-600 shadow-sm dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
-              <button
-                class="px-2.5 py-1 rounded-lg transition"
-                :class="riskFilter === 'all' ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700'"
-                @click="riskFilter = 'all'">
-                All
-              </button>
-              <button
-                class="px-2.5 py-1 rounded-lg transition"
-                :class="riskFilter === 'high' ? 'bg-red-500 text-white' : 'hover:bg-red-50 text-red-600 dark:hover:bg-red-500/10 dark:text-red-400'"
-                @click="riskFilter = 'high'">
-                High
-              </button>
-              <button
-                class="px-2.5 py-1 rounded-lg transition"
-                :class="riskFilter === 'medium' ? 'bg-amber-500 text-white' : 'hover:bg-amber-50 text-amber-600 dark:hover:bg-amber-500/10 dark:text-amber-400'"
-                @click="riskFilter = 'medium'">
-                Medium
-              </button>
-              <button
-                class="px-2.5 py-1 rounded-lg transition"
-                :class="riskFilter === 'low' ? 'bg-emerald-500 text-white' : 'hover:bg-emerald-50 text-emerald-600 dark:hover:bg-emerald-500/10 dark:text-emerald-400'"
-                @click="riskFilter = 'low'">
-                Low
-              </button>
+              <button class="px-2.5 py-1 rounded-lg transition" :class="riskFilter === 'all' ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700'" @click="riskFilter = 'all'">All</button>
+              <button class="px-2.5 py-1 rounded-lg transition" :class="riskFilter === 'high' ? 'bg-red-500 text-white' : 'hover:bg-red-50 text-red-600 dark:hover:bg-red-500/10 dark:text-red-400'" @click="riskFilter = 'high'">High</button>
+              <button class="px-2.5 py-1 rounded-lg transition" :class="riskFilter === 'medium' ? 'bg-amber-500 text-white' : 'hover:bg-amber-50 text-amber-600 dark:hover:bg-amber-500/10 dark:text-amber-400'" @click="riskFilter = 'medium'">Medium</button>
+              <button class="px-2.5 py-1 rounded-lg transition" :class="riskFilter === 'low' ? 'bg-emerald-500 text-white' : 'hover:bg-emerald-50 text-emerald-600 dark:hover:bg-emerald-500/10 dark:text-emerald-400'" @click="riskFilter = 'low'">Low</button>
             </div>
             <div class="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-2 py-1.5 text-[11px] font-semibold text-neutral-600 shadow-sm dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
-              <button
-                @click="toggleAutoRefresh"
-                class="relative inline-flex h-5 w-9 items-center rounded-full transition"
-                :class="autoRefreshEnabled ? 'bg-emerald-500' : 'bg-neutral-300 dark:bg-neutral-700'">
-                <span
-                  class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition"
-                  :class="autoRefreshEnabled ? 'translate-x-4' : 'translate-x-0.5'">
-                </span>
-              </button>
+              <button @click="toggleAutoRefresh" class="relative inline-flex h-5 w-9 items-center rounded-full transition" :class="autoRefreshEnabled ? 'bg-emerald-500' : 'bg-neutral-300 dark:bg-neutral-700'"><span class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition" :class="autoRefreshEnabled ? 'translate-x-4' : 'translate-x-0.5'"></span></button>
               <span class="text-[10px] uppercase tracking-widest text-neutral-500">Auto</span>
-              <select
-                v-model.number="autoRefreshSeconds"
-                :disabled="!autoRefreshEnabled"
-                class="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[11px] font-semibold text-neutral-700 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200">
-                <option v-for="opt in autoRefreshOptions" :key="opt" :value="opt">[[ opt ]]s</option>
-              </select>
+              <select v-model.number="autoRefreshSeconds" :disabled="!autoRefreshEnabled" class="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-[11px] font-semibold text-neutral-700 shadow-sm transition focus:outline-none focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-200"><option v-for="opt in autoRefreshOptions" :key="opt" :value="opt">[[ opt ]]s</option></select>
             </div>
-            <button
-              @click="refreshDashboard"
-              :disabled="isRefreshing"
-              class="flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 shadow-sm transition disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700">
-              <svg class="w-3 h-3" :class="isRefreshing ? 'animate-spin' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v6h6M20 20v-6h-6M5 19a9 9 0 0014-7 9 9 0 00-9-9"/>
-              </svg>
-              Refresh
-            </button>
+            <button @click="refreshDashboard" :disabled="isRefreshing" class="flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 shadow-sm transition disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"><svg class="w-3 h-3" :class="isRefreshing ? 'animate-spin' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v6h6M20 20v-6h-6M5 19a9 9 0 0014-7 9 9 0 00-9-9"/></svg>Refresh</button>
           </div>
         </div>
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-
-          <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-            <div class="flex items-start justify-between">
-              <div>
-                <div class="text-xs uppercase tracking-widest text-neutral-500 mb-3">Total Borrowers</div>
-                <div class="text-3xl font-semibold">[[ stats.total_borrowers ?? '--' ]]</div>
-              </div>
-              <div class="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 dark:bg-blue-500/10 dark:border-blue-500/20 flex items-center justify-center">
-                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg>
-              </div>
-            </div>
-            <div class="mt-3 text-xs text-neutral-400">All active accounts</div>
-          </div>
-
-          <div class="rounded-2xl border border-red-100 bg-white p-5 shadow-sm dark:border-red-500/20 dark:bg-neutral-900">
-            <div class="flex items-start justify-between">
-              <div>
-                <div class="text-xs uppercase tracking-widest text-neutral-500 mb-3">High Risk</div>
-                <div class="text-3xl font-semibold text-red-500">[[ stats.high ?? '--' ]]</div>
-              </div>
-              <div class="w-9 h-9 rounded-lg bg-red-50 border border-red-100 dark:bg-red-500/10 dark:border-red-500/20 flex items-center justify-center">
-                <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-              </div>
-            </div>
-            <div class="mt-3 text-xs text-neutral-400">Requires review</div>
-          </div>
-
-          <div class="rounded-2xl border border-amber-100 bg-white p-5 shadow-sm dark:border-amber-500/20 dark:bg-neutral-900">
-            <div class="flex items-start justify-between">
-              <div>
-                <div class="text-xs uppercase tracking-widest text-neutral-500 mb-3">Unread Alerts</div>
-                <div class="text-3xl font-semibold text-amber-500">[[ stats.unread_alerts ?? '--' ]]</div>
-              </div>
-              <div class="w-9 h-9 rounded-lg bg-amber-50 border border-amber-100 dark:bg-amber-500/10 dark:border-amber-500/20 flex items-center justify-center">
-                <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-              </div>
-            </div>
-            <div class="mt-3 text-xs text-neutral-400">Needs attention</div>
-          </div>
-
-          <div class="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm dark:border-emerald-500/20 dark:bg-neutral-900">
-            <div class="flex items-start justify-between">
-              <div>
-                <div class="text-xs uppercase tracking-widest text-neutral-500 mb-3">Avg Risk Score</div>
-                <div class="text-3xl font-semibold text-emerald-600 dark:text-emerald-400">[[ stats.avg_risk_score ?? '--' ]]</div>
-              </div>
-              <div class="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-100 dark:bg-emerald-500/10 dark:border-emerald-500/20 flex items-center justify-center">
-                <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-              </div>
-            </div>
-            <div class="mt-3 text-xs text-neutral-400">Portfolio average</div>
-          </div>
+          <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"><div class="flex items-start justify-between"><div><div class="text-xs uppercase tracking-widest text-neutral-500 mb-3">Total Borrowers</div><div class="text-3xl font-semibold">[[ stats.total_borrowers ?? '--' ]]</div></div><div class="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 dark:bg-blue-500/10 dark:border-blue-500/20 flex items-center justify-center"><svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg></div></div><div class="mt-3 text-xs text-neutral-400">All active accounts</div></div>
+          <div class="rounded-2xl border border-red-100 bg-white p-5 shadow-sm dark:border-red-500/20 dark:bg-neutral-900"><div class="flex items-start justify-between"><div><div class="text-xs uppercase tracking-widest text-neutral-500 mb-3">High Risk</div><div class="text-3xl font-semibold text-red-500">[[ stats.high ?? '--' ]]</div></div><div class="w-9 h-9 rounded-lg bg-red-50 border border-red-100 dark:bg-red-500/10 dark:border-red-500/20 flex items-center justify-center"><svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div></div><div class="mt-3 text-xs text-neutral-400">Requires review</div></div>
+          <div class="rounded-2xl border border-amber-100 bg-white p-5 shadow-sm dark:border-amber-500/20 dark:bg-neutral-900"><div class="flex items-start justify-between"><div><div class="text-xs uppercase tracking-widest text-neutral-500 mb-3">Unread Alerts</div><div class="text-3xl font-semibold text-amber-500">[[ stats.unread_alerts ?? '--' ]]</div></div><div class="w-9 h-9 rounded-lg bg-amber-50 border border-amber-100 dark:bg-amber-500/10 dark:border-amber-500/20 flex items-center justify-center"><svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg></div></div><div class="mt-3 text-xs text-neutral-400">Needs attention</div></div>
+          <div class="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm dark:border-emerald-500/20 dark:bg-neutral-900"><div class="flex items-start justify-between"><div><div class="text-xs uppercase tracking-widest text-neutral-500 mb-3">Avg Risk Score</div><div class="text-3xl font-semibold text-emerald-600 dark:text-emerald-400">[[ stats.avg_risk_score ?? '--' ]]</div></div><div class="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-100 dark:bg-emerald-500/10 dark:border-emerald-500/20 flex items-center justify-center"><svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div></div><div class="mt-3 text-xs text-neutral-400">Portfolio average</div></div>
         </div>
-
         <div class="grid gap-6 lg:grid-cols-2">
-          <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-            <div class="flex items-center justify-between mb-5">
-              <div>
-                <h2 class="text-sm font-semibold">Portfolio Risk Trend</h2>
-                <p class="text-xs text-neutral-500 mt-0.5">14-day rolling average</p>
-              </div>
-              <span class="badge px-2 py-1 rounded-md bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">LIVE</span>
-            </div>
-            <div class="h-56"><canvas id="riskTrendChart"></canvas></div>
-          </div>
-          <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-            <div class="flex items-center justify-between mb-5">
-              <div>
-                <h2 class="text-sm font-semibold">Risk Distribution</h2>
-                <p class="text-xs text-neutral-500 mt-0.5">Current portfolio breakdown</p>
-              </div>
-              <span class="badge px-2 py-1 rounded-md bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">[[ riskFilter === 'all' ? 'NOW' : 'FILTERED' ]]</span>
-            </div>
-            <div class="h-56"><canvas id="riskDistChart"></canvas></div>
-          </div>
+          <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"><div class="flex items-center justify-between mb-5"><div><h2 class="text-sm font-semibold">Portfolio Risk Trend</h2><p class="text-xs text-neutral-500 mt-0.5">14-day rolling average</p></div><span class="badge px-2 py-1 rounded-md bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">LIVE</span></div><div class="h-56"><canvas id="riskTrendChart"></canvas></div></div>
+          <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"><div class="flex items-center justify-between mb-5"><div><h2 class="text-sm font-semibold">Risk Distribution</h2><p class="text-xs text-neutral-500 mt-0.5">Current portfolio breakdown</p></div><span class="badge px-2 py-1 rounded-md bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">[[ riskFilter === 'all' ? 'NOW' : 'FILTERED' ]]</span></div><div class="h-56"><canvas id="riskDistChart"></canvas></div></div>
         </div>
       </section>
 
-      <!-- APPLICATIONS TAB -->
+      <!-- APPLICATIONS TAB (simplified – keep your existing table; here we show a minimal version) -->
       <section v-if="activeTab === 'applications'" class="fade-up space-y-4">
-        <div class="flex items-center justify-between">
-          <div>
-            <h2 class="text-sm font-semibold">Loan Applications</h2>
-            <p class="text-xs text-neutral-500 mono">Page [[ appPage ]]</p>
-          </div>
-          <div class="flex items-center gap-3">
-            <p v-if="applicationFeedback" class="text-xs text-emerald-600 dark:text-emerald-400 mono">[[ applicationFeedback ]]</p>
-            <div class="hidden md:flex items-center gap-1 rounded-xl border border-neutral-200 bg-white p-1 text-[11px] font-semibold text-neutral-600 shadow-sm dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
-              <button
-                class="px-2.5 py-1 rounded-lg transition"
-                :class="riskFilter === 'all' ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900' : 'hover:bg-neutral-100 dark:hover:bg-neutral-700'"
-                @click="riskFilter = 'all'">
-                All
-              </button>
-              <button
-                class="px-2.5 py-1 rounded-lg transition"
-                :class="riskFilter === 'high' ? 'bg-red-500 text-white' : 'hover:bg-red-50 text-red-600 dark:hover:bg-red-500/10 dark:text-red-400'"
-                @click="riskFilter = 'high'">
-                High
-              </button>
-              <button
-                class="px-2.5 py-1 rounded-lg transition"
-                :class="riskFilter === 'medium' ? 'bg-amber-500 text-white' : 'hover:bg-amber-50 text-amber-600 dark:hover:bg-amber-500/10 dark:text-amber-400'"
-                @click="riskFilter = 'medium'">
-                Medium
-              </button>
-              <button
-                class="px-2.5 py-1 rounded-lg transition"
-                :class="riskFilter === 'low' ? 'bg-emerald-500 text-white' : 'hover:bg-emerald-50 text-emerald-600 dark:hover:bg-emerald-500/10 dark:text-emerald-400'"
-                @click="riskFilter = 'low'">
-                Low
-              </button>
-            </div>
-            <div class="flex items-center gap-2">
-              <button
-                class="flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 shadow-sm transition disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
-                :disabled="appPage === 1 || appLoading"
-                @click="prevApplications">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-                Previous
-              </button>
-              <button
-                class="flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 shadow-sm transition disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
-                :disabled="!appHasMore || appLoading"
-                @click="nextApplications">
-                Next page
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-              </button>
-            </div>
-          </div>
-        </div>
+        <div class="flex items-center justify-between"><div><h2 class="text-sm font-semibold">Loan Applications</h2><p class="text-xs text-neutral-500 mono">Page [[ appPage ]]</p></div><div class="flex items-center gap-3"><p v-if="applicationFeedback" class="text-xs text-emerald-600 dark:text-emerald-400 mono">[[ applicationFeedback ]]</p><div class="flex items-center gap-2"><button class="flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold disabled:opacity-40" :disabled="appPage === 1 || appLoading" @click="prevApplications">Previous</button><button class="flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold disabled:opacity-40" :disabled="!appHasMore || appLoading" @click="nextApplications">Next</button></div></div></div>
+        <div class="rounded-2xl border bg-white shadow-sm overflow-hidden dark:border-neutral-800 dark:bg-neutral-900"><div v-if="appLoading" class="p-12 text-center text-sm">Loading...</div><div v-else-if="!applications.length" class="p-12 text-center text-sm">No applications found.</div><div v-else class="overflow-x-auto"><table class="w-full text-left text-sm"><thead><tr class="border-b bg-neutral-50/80 dark:border-neutral-800 dark:bg-neutral-800/50"><th class="px-5 py-3 text-[10px] uppercase">Tracking #</th><th class="px-5 py-3">Client</th><th class="px-5 py-3">Amount</th><th class="px-5 py-3">Risk</th><th class="px-5 py-3">Status</th><th class="px-5 py-3">Decision</th><th class="px-5 py-3">Date</th></tr></thead><tbody><tr v-for="app in applications" :key="app.tracking_number" class="row-hover border-b dark:border-neutral-800/60"><td class="px-5 py-3.5"><span class="mono text-xs bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded">[[ app.tracking_number ]]</span></td><td class="px-5 py-3.5 font-medium">[[ app.borrower_name ]]</td><td class="px-5 py-3.5 mono">$[[ app.amount.toLocaleString() ]]</td><td class="px-5 py-3.5"><span class="badge px-2 py-1 rounded-full" :class="app.risk_label === 'High' ? 'bg-red-100 text-red-600' : app.risk_label === 'Medium' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-700'">[[ app.risk_label?.toUpperCase() ]]</span></td><td class="px-5 py-3.5"><span class="badge px-2 py-1 rounded-full" :class="app.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : app.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-neutral-100 text-neutral-600'">[[ app.status?.toUpperCase() ]]</span></td><td class="px-5 py-3.5 text-xs"><span v-if="app.status === 'rejected'" class="mono text-red-600">[[ app.decision_reason || 'Rejected automatically' ]]</span><span v-else class="text-neutral-500">[[ app.decision_reason || 'Auto-approved' ]]</span></td><td class="px-5 py-3.5 mono text-xs">[[ app.timestamp ]]</td></tr></tbody></table></div></div>
+      </section>
 
-        <div class="rounded-2xl border border-neutral-200 bg-white shadow-sm overflow-hidden dark:border-neutral-800 dark:bg-neutral-900">
-          <div v-if="appLoading" class="p-12 text-center text-sm text-neutral-500">
-            <svg class="w-5 h-5 animate-spin mx-auto mb-3 text-blue-500" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-            </svg>
-            Loading applications...
-          </div>
-          <div v-else-if="!filteredApplications.length" class="p-12 text-center text-sm text-neutral-500">No applications found.</div>
-          <div v-else class="overflow-x-auto">
-            <table class="w-full text-left text-sm">
-              <thead>
-                <tr class="border-b border-neutral-200 bg-neutral-50/80 dark:border-neutral-800 dark:bg-neutral-800/50">
-                  <th class="px-5 py-3 text-[10px] uppercase tracking-[0.12em] text-neutral-500 font-semibold">Tracking #</th>
-                  <th class="px-5 py-3 text-[10px] uppercase tracking-[0.12em] text-neutral-500 font-semibold">Client</th>
-                  <th class="px-5 py-3 text-[10px] uppercase tracking-[0.12em] text-neutral-500 font-semibold">Amount</th>
-                  <th class="px-5 py-3 text-[10px] uppercase tracking-[0.12em] text-neutral-500 font-semibold">Risk</th>
-                  <th class="px-5 py-3 text-[10px] uppercase tracking-[0.12em] text-neutral-500 font-semibold">Status</th>
-                  <th class="px-5 py-3 text-[10px] uppercase tracking-[0.12em] text-neutral-500 font-semibold">Decision</th>
-                  <th class="px-5 py-3 text-[10px] uppercase tracking-[0.12em] text-neutral-500 font-semibold">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="app in filteredApplications" :key="app.tracking_number"
-                    class="row-hover border-b border-neutral-100 dark:border-neutral-800/60 transition-colors">
-                  <td class="px-5 py-3.5">
-                    <span class="mono text-xs text-neutral-600 bg-neutral-100 dark:bg-neutral-800 dark:text-neutral-300 px-2 py-0.5 rounded">[[ app.tracking_number ]]</span>
-                  </td>
-                  <td class="px-5 py-3.5 text-sm font-medium">[[ app.borrower_name ]]</td>
-                  <td class="px-5 py-3.5 mono text-sm">$[[ app.amount.toLocaleString() ]]</td>
-                  <td class="px-5 py-3.5">
-                    <span class="badge px-2 py-1 rounded-full"
-                          :class="app.risk_label === 'High'   ? 'bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400'
-                                : app.risk_label === 'Medium' ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400'
-                                : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'">[[ app.risk_label?.toUpperCase() ]]</span>
-                  </td>
-                  <td class="px-5 py-3.5">
-                    <span class="badge px-2 py-1 rounded-full"
-                          :class="app.status === 'approved'  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
-                                : app.status === 'suspended' ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400'
-                                : app.status === 'rejected'  ? 'bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400'
-                                : 'bg-neutral-100 text-neutral-600 dark:bg-neutral-800 dark:text-neutral-400'">[[ app.status?.toUpperCase() ]]</span>
-                  </td>
-                  <td class="px-5 py-3.5 text-xs text-neutral-600 dark:text-neutral-300">
-                    <span v-if="app.status === 'rejected'" class="mono text-red-600 dark:text-red-400">[[ app.decision_reason || 'Rejected automatically' ]]</span>
-                    <span v-else class="text-neutral-500">[[ app.decision_reason || 'Auto-approved' ]]</span>
-                  </td>
-                  <td class="px-5 py-3.5 mono text-xs text-neutral-400">[[ app.timestamp ]]</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+      <!-- ANOMALIES TAB -->
+      <section v-if="activeTab === 'anomalies'" class="fade-up space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3"><div><h2 class="text-sm font-semibold">Anomaly Alerts</h2><p class="text-xs text-neutral-500">Filtered risk events</p></div><div class="flex flex-wrap gap-2"><select v-model="anomalyFilters.severity" class="rounded-xl border px-3 py-1.5 text-xs dark:border-neutral-700 dark:bg-neutral-800"><option value="">All severities</option><option value="CRITICAL">CRITICAL</option><option value="HIGH">HIGH</option><option value="MEDIUM">MEDIUM</option><option value="LOW">LOW</option></select><input v-model="anomalyFilters.borrower_name" placeholder="Borrower name" class="rounded-xl border px-3 py-1.5 text-xs dark:border-neutral-700 dark:bg-neutral-800" /><input type="date" v-model="anomalyFilters.start_date" class="rounded-xl border px-3 py-1.5 text-xs dark:border-neutral-700 dark:bg-neutral-800" /><input type="date" v-model="anomalyFilters.end_date" class="rounded-xl border px-3 py-1.5 text-xs dark:border-neutral-700 dark:bg-neutral-800" /><button @click="loadAnomalies(1)" class="rounded-xl bg-neutral-900 px-3 py-1.5 text-xs text-white dark:bg-white dark:text-neutral-900">Search</button></div></div>
+        <div v-if="anomaliesLoading" class="p-12 text-sm text-neutral-500 text-center">Loading...</div>
+        <div v-else-if="!anomaliesList.length" class="rounded-2xl border p-12 text-sm text-center dark:border-neutral-800">No anomalies found.</div>
+        <div v-else class="rounded-2xl border bg-white dark:border-neutral-800 dark:bg-neutral-900 overflow-x-auto"><table class="w-full text-left text-sm"><thead><tr class="border-b bg-neutral-50 dark:border-neutral-800"><th class="px-4 py-3 text-[10px] uppercase">Timestamp</th><th class="px-4 py-3">Borrower</th><th class="px-4 py-3">Type</th><th class="px-4 py-3">Severity</th><th class="px-4 py-3">Message</th></tr></thead><tbody><tr v-for="alert in anomaliesList" :key="alert.id" class="border-b dark:border-neutral-800/60"><td class="px-4 py-2 mono text-xs">[[ alert.timestamp ]]</td><td class="px-4 py-2 font-medium">[[ alert.borrower_name ]]</td><td class="px-4 py-2">[[ alert.alert_type ]]</td><td class="px-4 py-2"><span class="badge px-2 py-0.5 rounded-full" :class="{'bg-red-100 text-red-600': alert.severity === 'CRITICAL', 'bg-amber-100 text-amber-600': alert.severity === 'HIGH'}">[[ alert.severity ]]</span></td><td class="px-4 py-2 text-xs text-neutral-600 dark:text-neutral-300">[[ alert.message.substring(0, 120) ]]...</td></tr></tbody></table></div>
+        <div class="flex justify-between items-center mt-2"><span class="text-xs text-neutral-400">Page [[ anomaliesPage ]] of [[ Math.ceil(anomaliesTotal / anomaliesLimit) ]]</span><div class="flex gap-2"><button @click="loadAnomalies(anomaliesPage-1)" :disabled="anomaliesPage===1" class="rounded-xl border px-3 py-1 text-xs disabled:opacity-50">Previous</button><button @click="loadAnomalies(anomaliesPage+1)" :disabled="anomaliesPage >= Math.ceil(anomaliesTotal/anomaliesLimit)" class="rounded-xl border px-3 py-1 text-xs">Next</button></div></div>
+      </section>
+
+      <!-- BORROWER SEARCH TAB -->
+      <section v-if="activeTab === 'borrowerSearch'" class="fade-up space-y-4">
+        <div class="flex gap-2"><input v-model="searchQuery" @keyup.enter="searchBorrowers" placeholder="Search by name or borrower ID..." class="flex-1 rounded-xl border px-4 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900" /><button @click="searchBorrowers" class="rounded-xl bg-neutral-900 px-4 py-2 text-sm text-white dark:bg-white dark:text-neutral-900">Search</button></div>
+        <div v-if="searchResults.length" class="grid gap-2"><div v-for="b in searchResults" :key="b.id" class="rounded-xl border p-3 dark:border-neutral-800 flex justify-between items-center"><div><div class="font-semibold">[[ b.full_name ]]</div><div class="text-xs text-neutral-500">ID: [[ b.id ]] | Risk: [[ b.risk_label ]] ([[ b.risk_score ]])</div></div><button @click="viewBorrowerProfile(b.id)" class="rounded-lg bg-blue-50 px-3 py-1 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">View Profile</button></div></div>
+        <div v-else-if="searchPerformed && !searchResults.length" class="text-center text-sm text-neutral-500 py-8">No borrowers found.</div>
+
+        <!-- Profile Modal -->
+        <div v-if="showProfileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"><div class="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900"><div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold">Borrower Profile</h2><button @click="showProfileModal=false" class="text-2xl">&times;</button></div><div v-if="profileLoading" class="text-center py-8">Loading...</div><div v-else><div class="grid grid-cols-2 gap-4 p-4 bg-neutral-50 rounded-xl dark:bg-neutral-800"><div><span class="text-xs text-neutral-500">Full name</span><div class="font-medium">[[ profile.borrower?.full_name ]]</div></div><div><span class="text-xs text-neutral-500">ID</span><div class="font-mono text-sm">[[ profile.borrower?.id ]]</div></div><div><span class="text-xs text-neutral-500">Salary</span><div>$[[ profile.borrower?.salary?.toLocaleString() ]]</div></div><div><span class="text-xs text-neutral-500">Risk score</span><div class="font-semibold">[[ profile.borrower?.risk_score ]] ([[ profile.borrower?.risk_label ]])</div></div><div><span class="text-xs text-neutral-500">Active loans</span><div>[[ profile.borrower?.active_loans ]]</div></div><div><span class="text-xs text-neutral-500">Outstanding balance</span><div>$[[ profile.borrower?.outstanding_balance?.toLocaleString() ]]</div></div><div><span class="text-xs text-neutral-500">Return rate</span><div>[[ profile.borrower?.return_rate ]]%</div></div><div><span class="text-xs text-neutral-500">Days past due</span><div>[[ profile.borrower?.days_past_due ]]</div></div></div><div class="mt-4"><h3 class="text-sm font-semibold mb-2">Loan Applications</h3><div class="space-y-2 max-h-60 overflow-y-auto"><div v-for="tx in profile.transactions" :key="tx.id" class="border-b dark:border-neutral-800 py-2 text-sm"><span class="mono">[[ tx.timestamp.slice(0,10) ]]</span> - $[[ tx.amount ]] - [[ tx.status ]] - Risk: [[ tx.risk_label_after ]]</div><div v-if="!profile.transactions?.length" class="text-xs text-neutral-500">No transactions</div></div></div><div class="mt-4"><h3 class="text-sm font-semibold mb-2">Anomaly Alerts</h3><div class="space-y-2 max-h-60 overflow-y-auto"><div v-for="alert in profile.alerts" :key="alert.id" class="border-b dark:border-neutral-800 py-2 text-xs"><span class="font-medium">[[ alert.alert_type ]]</span> ([[ alert.severity ]]) - [[ alert.timestamp.slice(0,10) ]]<br/><span class="text-neutral-500">[[ alert.message.substring(0,120) ]]</span></div></div></div><div v-if="profile.credit_bureau" class="mt-4 p-3 bg-blue-50 rounded-xl dark:bg-blue-950/20"><h3 class="text-sm font-semibold">Credit Bureau Data</h3><div class="grid grid-cols-2 gap-2 text-xs mt-2"><div>External active loans: [[ profile.credit_bureau.active_loans_elsewhere ]]</div><div>External outstanding: $[[ profile.credit_bureau.outstanding_elsewhere ]]</div><div>External repayment rate: [[ profile.credit_bureau.repayment_rate_elsewhere ]]%</div><div>External days past due: [[ profile.credit_bureau.days_past_due_elsewhere ]]</div><div class="col-span-2">Institutions: [[ profile.credit_bureau.institutions.join(', ') ]]</div></div></div></div><div class="mt-6 flex justify-end"><button @click="showProfileModal=false" class="rounded-xl bg-neutral-900 px-4 py-2 text-white">Close</button></div></div></div>
       </section>
 
       <!-- NOTIFICATIONS TAB -->
       <section v-if="activeTab === 'notifications'" class="fade-up space-y-4">
-        <div class="flex items-center justify-between">
-          <div>
-            <h2 class="text-sm font-semibold">Notifications</h2>
-            <p class="text-xs text-neutral-500">Alerts &amp; system events</p>
-          </div>
-          <div class="flex items-center gap-2">
-            <button
-              class="flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 shadow-sm transition disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
-              :disabled="notificationOffset === 0 || notificationsLoading"
-              @click="prevNotifications">
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-              Previous
-            </button>
-            <button
-              class="flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-1.5 text-xs font-semibold text-neutral-700 hover:bg-neutral-50 shadow-sm transition disabled:opacity-40 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:bg-neutral-700"
-              :disabled="!notificationsHasMore || notificationsLoading"
-              @click="nextNotifications">
-              Load more
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-            </button>
-            <button
-              class="flex items-center gap-1.5 rounded-xl border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 shadow-sm transition disabled:opacity-40 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300"
-              :disabled="notificationsLoading || !notifications.length"
-              @click="clearNotifications">
-              Clear all
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-          </div>
-        </div>
-
-        <div v-if="notificationsLoading" class="rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900 p-12 text-center text-sm text-neutral-500 shadow-sm">Loading...</div>
-        <div v-else-if="!notifications.length" class="rounded-2xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900 p-12 text-center text-sm text-neutral-500 shadow-sm">No notifications.</div>
-          <div v-else class="space-y-2">
-          <button v-for="alert in notifications" :key="alert.id"
-               @click="openNotification(alert)"
-               class="w-full text-left rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm hover:border-neutral-300 transition-colors dark:border-neutral-800 dark:bg-neutral-900 dark:hover:border-neutral-700">
-            <div class="flex items-start gap-3">
-              <div class="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center mt-0.5"
-                   :class="alert.severity === 'HIGH'   ? 'bg-red-100 text-red-500 dark:bg-red-500/10 dark:text-red-400'
-                         : alert.severity === 'MEDIUM' ? 'bg-amber-100 text-amber-500 dark:bg-amber-500/10 dark:text-amber-400'
-                         : 'bg-blue-100 text-blue-500 dark:bg-blue-500/10 dark:text-blue-400'">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center justify-between gap-2 flex-wrap">
-                  <span class="text-sm font-semibold">[[ alert.alert_type ]]</span>
-                  <span class="badge px-2 py-0.5 rounded-full"
-                        :class="alert.severity === 'HIGH'   ? 'bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400'
-                              : alert.severity === 'MEDIUM' ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400'
-                              : 'bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400'">[[ alert.severity ]]</span>
-                </div>
-                <p class="mt-1 text-xs text-neutral-500 leading-relaxed">[[ alert.message ]]</p>
-                <p class="mt-2 mono text-[10px] text-neutral-400">[[ alert.timestamp ]]</p>
-              </div>
-            </div>
-          </button>
-        </div>
+        <div class="flex items-center justify-between"><div><h2 class="text-sm font-semibold">Notifications</h2><p class="text-xs text-neutral-500">Alerts &amp; system events</p></div><div class="flex items-center gap-2"><button class="flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold disabled:opacity-40" :disabled="notificationOffset === 0 || notificationsLoading" @click="prevNotifications">Previous</button><button class="flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold disabled:opacity-40" :disabled="!notificationsHasMore || notificationsLoading" @click="nextNotifications">Load more</button><button class="flex items-center gap-1.5 rounded-xl border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 shadow-sm transition disabled:opacity-40 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300" :disabled="notificationsLoading || !notifications.length" @click="clearNotifications">Clear all</button></div></div>
+        <div v-if="notificationsLoading" class="rounded-2xl border p-12 text-center text-sm">Loading...</div><div v-else-if="!notifications.length" class="rounded-2xl border p-12 text-center text-sm">No notifications.</div><div v-else class="space-y-2"><button v-for="alert in notifications" :key="alert.id" @click="openNotification(alert)" class="w-full text-left rounded-2xl border p-4 shadow-sm hover:border-neutral-300 transition-colors dark:border-neutral-800 dark:bg-neutral-900"><div class="flex items-start gap-3"><div class="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center" :class="alert.severity === 'HIGH' ? 'bg-red-100 text-red-500' : alert.severity === 'MEDIUM' ? 'bg-amber-100 text-amber-500' : 'bg-blue-100 text-blue-500'"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="flex-1"><div class="flex items-center justify-between gap-2 flex-wrap"><span class="text-sm font-semibold">[[ alert.alert_type ]]</span><span class="badge px-2 py-0.5 rounded-full" :class="alert.severity === 'HIGH' ? 'bg-red-100 text-red-600' : alert.severity === 'MEDIUM' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'">[[ alert.severity ]]</span></div><p class="mt-1 text-xs text-neutral-500 leading-relaxed">[[ alert.message ]]</p><p class="mt-2 mono text-[10px] text-neutral-400">[[ alert.timestamp ]]</p></div></div></button></div>
       </section>
 
       <!-- BLACKLIST TAB -->
       <section v-if="activeTab === 'blacklist'" class="fade-up space-y-4">
-        <div class="flex items-center justify-between">
-          <div>
-            <h2 class="text-sm font-semibold">Blacklist Registry</h2>
-            <p class="text-xs text-neutral-500">Flagged &amp; suspended clients</p>
-          </div>
-          <span class="badge px-2.5 py-1 rounded-full bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400">[[ blacklist.length ]] records</span>
-        </div>
-
-        <div v-if="!blacklist.length" class="rounded-2xl border border-neutral-200 bg-white p-12 text-center text-sm text-neutral-500 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">No records in the blacklist.</div>
-        <div v-else class="rounded-2xl border border-neutral-200 bg-white shadow-sm overflow-hidden dark:border-neutral-800 dark:bg-neutral-900">
-          <div v-for="(entry, i) in blacklist" :key="entry.id"
-               :class="['flex items-start gap-4 p-4 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors', i > 0 ? 'border-t border-neutral-100 dark:border-neutral-800' : '']">
-            <div class="w-9 h-9 rounded-full bg-red-100 border border-red-200 dark:bg-red-500/10 dark:border-red-500/20 flex items-center justify-center flex-shrink-0">
-              <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center justify-between gap-2 flex-wrap">
-                <span class="text-sm font-semibold">[[ entry.full_name ]]</span>
-                <span class="mono text-xs text-neutral-500">Credit: <span class="text-red-500">[[ entry.credit_score ]]</span></span>
-              </div>
-              <p class="mt-1 text-xs text-neutral-500">[[ entry.reason ]]</p>
-              <p class="mt-1.5 mono text-[10px] text-neutral-400">Added: [[ entry.added_at ]]</p>
-            </div>
-          </div>
-        </div>
+        <div class="flex items-center justify-between"><div><h2 class="text-sm font-semibold">Blacklist Registry</h2><p class="text-xs text-neutral-500">Flagged &amp; suspended clients</p></div><span class="badge px-2.5 py-1 rounded-full bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400">[[ blacklist.length ]] records</span></div>
+        <div v-if="!blacklist.length" class="rounded-2xl border p-12 text-center text-sm">No records in the blacklist.</div><div v-else class="rounded-2xl border bg-white shadow-sm overflow-hidden dark:border-neutral-800 dark:bg-neutral-900"><div v-for="(entry, i) in blacklist" :key="entry.id" :class="['flex items-start gap-4 p-4 hover:bg-neutral-50 transition-colors', i > 0 ? 'border-t border-neutral-100 dark:border-neutral-800' : '']"><div class="w-9 h-9 rounded-full bg-red-100 border border-red-200 dark:bg-red-500/10 dark:border-red-500/20 flex items-center justify-center flex-shrink-0"><svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg></div><div class="flex-1"><div class="flex items-center justify-between gap-2 flex-wrap"><span class="text-sm font-semibold">[[ entry.full_name ]]</span><span class="mono text-xs text-neutral-500">Credit: <span class="text-red-500">[[ entry.credit_score ]]</span></span></div><p class="mt-1 text-xs text-neutral-500">[[ entry.reason ]]</p><p class="mt-1.5 mono text-[10px] text-neutral-400">Added: [[ entry.added_at ]]</p></div></div></div>
       </section>
 
     </main>
-    <transition name="toast">
-      <div v-if="showNotificationModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-        <div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900">
-          <div class="flex items-start gap-3">
-            <div class="flex h-10 w-10 items-center justify-center rounded-full"
-                 :class="selectedNotification?.severity === 'HIGH'   ? 'bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-400'
-                       : selectedNotification?.severity === 'MEDIUM' ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400'
-                       : 'bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400'">
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-            </div>
-            <div class="flex-1">
-              <h3 class="text-base font-semibold">[[ selectedNotification?.alert_type || 'Notification' ]]</h3>
-              <p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300">
-                [[ selectedNotification?.message || '' ]]
-              </p>
-              <div class="mt-3 text-xs text-neutral-500 space-y-1">
-                <div><span class="font-semibold">Severity:</span> [[ selectedNotification?.severity ]]</div>
-                <div><span class="font-semibold">Borrower:</span> [[ selectedNotification?.borrower_name || '--' ]]</div>
-                <div><span class="font-semibold">Channel:</span> [[ selectedNotification?.channel || '--' ]]</div>
-                <div class="mono"><span class="font-semibold">Timestamp:</span> [[ selectedNotification?.timestamp || '--' ]]</div>
-              </div>
-            </div>
-          </div>
-          <div class="mt-5 flex justify-end gap-2">
-            <button @click="closeNotificationModal"
-              class="rounded-xl border border-neutral-200 px-4 py-2 text-sm font-semibold text-neutral-700 hover:bg-neutral-50 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800">
-              Close
-            </button>
-            <button @click="markNotificationRead"
-              class="rounded-xl bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200">
-              Mark as viewed
-            </button>
-          </div>
-        </div>
-      </div>
-    </transition>
+
+    <!-- Notification Detail Modal -->
+    <transition name="toast"><div v-if="showNotificationModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"><div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900"><div class="flex items-start gap-3"><div class="flex h-10 w-10 items-center justify-center rounded-full" :class="selectedNotification?.severity === 'HIGH' ? 'bg-red-100 text-red-600' : selectedNotification?.severity === 'MEDIUM' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="flex-1"><h3 class="text-base font-semibold">[[ selectedNotification?.alert_type || 'Notification' ]]</h3><p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300">[[ selectedNotification?.message || '' ]]</p><div class="mt-3 text-xs text-neutral-500 space-y-1"><div><span class="font-semibold">Severity:</span> [[ selectedNotification?.severity ]]</div><div><span class="font-semibold">Borrower:</span> [[ selectedNotification?.borrower_name || '--' ]]</div><div><span class="font-semibold">Channel:</span> [[ selectedNotification?.channel || '--' ]]</div><div class="mono"><span class="font-semibold">Timestamp:</span> [[ selectedNotification?.timestamp || '--' ]]</div></div></div></div><div class="mt-5 flex justify-end gap-2"><button @click="closeNotificationModal" class="rounded-xl border px-4 py-2 text-sm font-semibold hover:bg-neutral-50 dark:border-neutral-700">Close</button><button @click="markNotificationRead" class="rounded-xl bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 dark:bg-white dark:text-neutral-900">Mark as viewed</button></div></div></div></transition>
   </div>
 </div>
 
 <script>
-  const { createApp, ref, computed, onMounted, watch } = Vue;
+  const { createApp, ref, computed, onMounted, watch, reactive } = Vue;
 
   createApp({
     setup() {
+      // ----- Existing state (keep all your original variables) -----
       const sidebarCollapsed = ref(false);
       const activeTab = ref('dashboard');
       const stats = ref({});
@@ -590,444 +218,291 @@
       let distChart = null;
       let dashboardRefreshTimer = null;
 
-      // ── Theme ──────────────────────────────────────────────
-      const applyTheme = (t) => {
-        if (t === 'dark') {
-          document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.remove('dark');
+      // ----- New state for anomalies & search -----
+      const searchQuery = ref('');
+      const searchResults = ref([]);
+      const searchPerformed = ref(false);
+      const showProfileModal = ref(false);
+      const profileLoading = ref(false);
+      const profile = ref({});
+      const anomaliesList = ref([]);
+      const anomaliesLoading = ref(false);
+      const anomaliesPage = ref(1);
+      const anomaliesTotal = ref(0);
+      const anomaliesLimit = ref(20);
+      const anomalyFilters = reactive({ severity: '', borrower_name: '', start_date: '', end_date: '' });
+
+      // ----- Theme functions -----
+      const applyTheme = (t) => { if (t === 'dark') document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark'); };
+      const toggleTheme = () => { theme.value = theme.value === 'light' ? 'dark' : 'light'; applyTheme(theme.value); localStorage.setItem('theme', theme.value); };
+      const themeLabel = computed(() => theme.value === 'light' ? 'Dark mode' : 'Light mode');
+
+      // ----- Nav items (now with anomalies and borrowerSearch) -----
+      const navItems = computed(() => [
+        { id: 'dashboard', label: 'Dashboard', icon: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10-3a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1v-7z"/></svg>` },
+        { id: 'applications', label: 'Applications', icon: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>` },
+        { id: 'anomalies', label: 'Anomalies', icon: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>` },
+        { id: 'borrowerSearch', label: 'Borrower Search', icon: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>` },
+        { id: 'notifications', label: 'Notifications', icon: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>` },
+        { id: 'blacklist', label: 'Blacklist', icon: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>` }
+      ]);
+
+      // ----- Auth token setup — redirect to login if missing -----
+      const _token = localStorage.getItem('financeguard_token');
+      if (!_token) { window.location = '/login'; }
+      axios.defaults.headers.common['Authorization'] = `Bearer ${_token}`;
+
+      // ----- Chart helpers -----
+      const getChartColors = () => theme.value === 'dark'
+        ? { grid: 'rgba(255,255,255,0.06)', tick: '#6b7280', bg: '#111827' }
+        : { grid: 'rgba(0,0,0,0.06)', tick: '#9ca3af', bg: '#ffffff' };
+
+      const renderTrendChart = (trend) => {
+        const ctx = document.getElementById('riskTrendChart');
+        if (!ctx || !trend || !trend.length) return;
+        const colors = getChartColors();
+        if (trendChart) trendChart.destroy();
+        trendChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: trend.map(d => d.day),
+            datasets: [{
+              label: 'Avg Risk Score',
+              data: trend.map(d => d.avg_risk),
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59,130,246,0.08)',
+              borderWidth: 2,
+              pointRadius: 3,
+              tension: 0.4,
+              fill: true,
+            }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { grid: { color: colors.grid }, ticks: { color: colors.tick, maxTicksLimit: 7 } },
+              y: { min: 0, max: 100, grid: { color: colors.grid }, ticks: { color: colors.tick } }
+            }
+          }
+        });
+      };
+
+      const renderDistChart = () => {
+        const ctx = document.getElementById('riskDistChart');
+        if (!ctx) return;
+        const colors = getChartColors();
+        if (distChart) distChart.destroy();
+        const high   = stats.value.high   ?? 0;
+        const medium = stats.value.medium ?? 0;
+        const low    = stats.value.low    ?? 0;
+        distChart = new Chart(ctx, {
+          type: 'doughnut',
+          data: {
+            labels: ['High', 'Medium', 'Low'],
+            datasets: [{
+              data: [high, medium, low],
+              backgroundColor: ['#ef4444', '#f59e0b', '#10b981'],
+              borderWidth: 0,
+              hoverOffset: 6,
+            }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom', labels: { color: colors.tick, padding: 16, font: { size: 11 } } }
+            }
+          }
+        });
+      };
+
+      // ----- Dashboard stats + trend -----
+      const fetchDashboardData = async () => {
+        isRefreshing.value = true;
+        try {
+          const [statsRes, trendRes] = await Promise.all([
+            axios.get('/api/stats'),
+            axios.get('/api/portfolio-risk-trend'),
+          ]);
+          stats.value = statsRes.data;
+          trendData.value = trendRes.data;
+          lastUpdated.value = new Date().toLocaleTimeString();
+          await Vue.nextTick();
+          renderTrendChart(trendRes.data);
+          renderDistChart();
+        } catch (err) {
+          console.error('fetchDashboardData error:', err);
+        } finally {
+          isRefreshing.value = false;
         }
       };
 
-      const toggleTheme = () => {
-        theme.value = theme.value === 'light' ? 'dark' : 'light';
-        applyTheme(theme.value);
-        localStorage.setItem('theme', theme.value);
-      };
-
-      const themeLabel = computed(() => theme.value === 'light' ? 'Dark mode' : 'Light mode');
-
-      // ── Nav items ──────────────────────────────────────────
-      const navItems = computed(() => [
-        {
-          id: 'dashboard', label: 'Dashboard',
-          icon: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zm10-3a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1v-7z"/></svg>`
-        },
-        {
-          id: 'applications', label: 'Applications',
-          icon: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>`
-        },
-        {
-          id: 'notifications', label: 'Notifications',
-          badge: stats.value.unread_alerts || null,
-          icon: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>`
-        },
-        {
-          id: 'blacklist', label: 'Blacklist',
-          icon: `<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>`
-        },
-      ]);
-
-      const filteredApplications = computed(() => applications.value);
-
-      // ── Charts ─────────────────────────────────────────────
-      const getChartColors = () => theme.value === 'dark'
-        ? { grid: 'rgba(255,255,255,0.06)', tick: '#6b7280', bg: '#111827' }
-        : { grid: 'rgba(0,0,0,0.06)',       tick: '#9ca3af', bg: '#ffffff' };
-
-          const renderTrendChart = (trend) => {
-              const ctx = document.getElementById('riskTrendChart');
-              if (!ctx) return;
-
-              // Destroy existing chart
-              if (trendChart) {
-                  trendChart.destroy();
-                  trendChart = null;
-              }
-
-              const c = getChartColors();
-
-              // Handle empty data - create placeholder
-              let chartData = trend;
-              if (!chartData || chartData.length === 0) {
-                  const today = new Date().toISOString().split('T')[0];
-                  chartData = [{ day: today, avg_risk: stats.value.avg_risk_score || 0, count: 0 }];
-              }
-
-              // Ensure we have at least 2 data points for a proper line
-              if (chartData.length === 1) {
-                  const yesterday = new Date();
-                  yesterday.setDate(yesterday.getDate() - 1);
-                  chartData = [
-                      { day: yesterday.toISOString().split('T')[0], avg_risk: chartData[0].avg_risk, count: 0 },
-                      chartData[0]
-                  ];
-              }
-
-              trendChart = new Chart(ctx, {
-                  type: 'line',
-                  data: {
-                      labels: chartData.map(t => {
-                          // Format date nicely
-                          const d = new Date(t.day);
-                          return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-                      }),
-                      datasets: [{
-                          label: 'Avg Risk Score',
-                          data: chartData.map(t => t.avg_risk),
-                          borderColor: '#3b82f6',
-                          backgroundColor: 'rgba(59,130,246,0.08)',
-                          borderWidth: 2,
-                          tension: 0.4,
-                          fill: true,
-                          pointBackgroundColor: '#3b82f6',
-                          pointBorderColor: '#ffffff',
-                          pointBorderWidth: 2,
-                          pointRadius: 4,
-                          pointHoverRadius: 6,
-                      }]
-                  },
-                  options: {
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      plugins: {
-                          legend: { display: false },
-                          tooltip: {
-                              callbacks: {
-                                  label: (context) => {
-                                      return `Avg Risk: ${context.parsed.y.toFixed(1)}/100`;
-                                  }
-                              }
-                          }
-                      },
-                      scales: {
-                          x: {
-                              grid: { display: false },
-                              ticks: { color: c.tick, font: { size: 10 } }
-                          },
-                          y: {
-                              beginAtZero: true,
-                              max: 100,
-                              grid: { color: c.grid },
-                              ticks: {
-                                  color: c.tick,
-                                  font: { size: 10 },
-                                  callback: (value) => value + '/100'
-                              }
-                          }
-                      }
-                  }
-              });
-          };
-
-          // Render Distribution Chart (Pie)
-          const renderDistChart = () => {
-              const ctx = document.getElementById('riskDistChart');
-              if (!ctx) {
-                  console.warn('Chart canvas not found');
-                  return;
-              }
-
-              // Always destroy existing chart before creating new one
-              if (distChart) {
-                  distChart.destroy();
-                  distChart = null;
-              }
-
-              const c = getChartColors();
-              const high = Number(stats.value.high) || 0;
-              const medium = Number(stats.value.medium) || 0;
-              const low = Number(stats.value.low) || 0;
-              const total = high + medium + low;
-
-              console.log('Rendering pie chart with:', { high, medium, low, total, filter: riskFilter.value });
-
-              // If no data, show placeholder
-              if (total === 0) {
-                  distChart = new Chart(ctx, {
-                      type: 'doughnut',
-                      data: {
-                          labels: ['No Data'],
-                          datasets: [{
-                              data: [1],
-                              backgroundColor: ['#d1d5db'],
-                              borderColor: c.bg,
-                              borderWidth: 2,
-                          }]
-                      },
-                      options: {
-                          responsive: true,
-                          maintainAspectRatio: false,
-                          plugins: {
-                              legend: { display: false }
-                          },
-                          cutout: '65%'
-                      }
-                  });
-                  return;
-              }
-
-              let chartData, chartLabels, chartColors;
-
-              // Filter data based on selection
-              if (riskFilter.value === 'high') {
-                  chartData = [high];
-                  chartLabels = ['High'];
-                  chartColors = ['#ef4444'];
-              } else if (riskFilter.value === 'medium') {
-                  chartData = [medium];
-                  chartLabels = ['Medium'];
-                  chartColors = ['#f59e0b'];
-              } else if (riskFilter.value === 'low') {
-                  chartData = [low];
-                  chartLabels = ['Low'];
-                  chartColors = ['#10b981'];
-              } else {
-                  // Show all three
-                  chartData = [high, medium, low].filter(v => v > 0);
-                  chartLabels = ['High', 'Medium', 'Low'].filter((_, i) => [high, medium, low][i] > 0);
-                  chartColors = ['#ef4444', '#f59e0b', '#10b981'].filter((_, i) => [high, medium, low][i] > 0);
-
-                  // If after filtering we have no data (shouldn't happen since total > 0)
-                  if (chartData.length === 0) {
-                      chartData = [high, medium, low];
-                      chartLabels = ['High', 'Medium', 'Low'];
-                      chartColors = ['#ef4444', '#f59e0b', '#10b981'];
-                  }
-              }
-
-              distChart = new Chart(ctx, {
-                  type: 'doughnut',
-                  data: {
-                      labels: chartLabels,
-                      datasets: [{
-                          data: chartData,
-                          backgroundColor: chartColors,
-                          borderColor: c.bg,
-                          borderWidth: 3,
-                          hoverOffset: 4,
-                      }]
-                  },
-                  options: {
-                      responsive: true,
-                      maintainAspectRatio: false,
-                      plugins: {
-                          legend: {
-                              position: 'bottom',
-                              labels: {
-                                  color: c.tick,
-                                  padding: 16,
-                                  font: { size: 11 }
-                              }
-                          },
-                          tooltip: {
-                              callbacks: {
-                                  label: (context) => {
-                                      const val = context.parsed;
-                                      const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                      const percent = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
-                                      return `${context.label}: ${val} (${percent}%)`;
-                                  }
-                              }
-                          }
-                      },
-                      cutout: '65%'
-                  }
-              });
-          };
-
-          const fetchDashboardData = async () => {
-              if (isRefreshing.value) return;
-              isRefreshing.value = true;
-              try {
-                  // Add timestamp to prevent caching
-                  const cacheBuster = `?_=${Date.now()}`;
-
-                  const [statsRes, trendRes] = await Promise.all([
-                      axios.get(`http://localhost:5000/api/stats${cacheBuster}`),
-                      axios.get(`http://localhost:5000/api/portfolio-risk-trend${cacheBuster}`)
-                  ]);
-
-                  console.log('Stats received:', {
-                      high: statsRes.data.high,
-                      medium: statsRes.data.medium,
-                      low: statsRes.data.low,
-                      total_borrowers: statsRes.data.total_borrowers,
-                      avg_risk_score: statsRes.data.avg_risk_score
-                  });
-
-                  // Update stats - this should trigger reactivity
-                  stats.value = { ...statsRes.data };
-                  trendData.value = trendRes.data || [];
-
-                  // Force chart updates
-                  setTimeout(() => {
-                      renderTrendChart(trendData.value);
-                      renderDistChart();
-                  }, 50);
-
-                  lastUpdated.value = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-              } catch (err) {
-                  console.error('Dashboard fetch error:', err);
-              } finally {
-                  isRefreshing.value = false;
-              }
-          };
-const loadApplications = async (page = 1) => {
+      // ----- Applications -----
+      const loadApplications = async (page = 1) => {
         appLoading.value = true;
-        applicationFeedback.value = '';
         try {
-          const { data } = await axios.get('http://localhost:5000/api/applications', {
-            params: { page, size: 10, risk: riskFilter.value || 'all' }
-          });
-          applications.value = data.records || [];
+          const params = { page, size: 10 };
+          if (riskFilter.value !== 'all') params.risk = riskFilter.value;
+          const { data } = await axios.get('/api/applications', { params });
+          applications.value = data.records;
+          appPage.value = data.page;
           appHasMore.value = data.has_more;
-          appPage.value = data.page || page;
-        } catch { applicationFeedback.value = 'Unable to load applications.'; }
-        finally { appLoading.value = false; }
+        } catch (err) {
+          console.error('loadApplications error:', err);
+        } finally {
+          appLoading.value = false;
+        }
       };
-
       const nextApplications = () => { if (appHasMore.value) loadApplications(appPage.value + 1); };
       const prevApplications = () => { if (appPage.value > 1) loadApplications(appPage.value - 1); };
 
+      // ----- Notifications (maps to /api/alerts) -----
       const loadNotifications = async (offset = 0) => {
         notificationsLoading.value = true;
         try {
-          const { data } = await axios.get('http://localhost:5000/api/alerts', { params: { limit: 10, offset } });
-          notifications.value = data || [];
+          const { data } = await axios.get('/api/alerts', { params: { offset, limit: 10, include_read: 1 } });
+          notifications.value = Array.isArray(data) ? data : (data.records || []);
           notificationOffset.value = offset;
           notificationsHasMore.value = notifications.value.length === 10;
-        } catch (err) { console.error(err); }
-        finally { notificationsLoading.value = false; }
+        } catch (err) {
+          console.error('loadNotifications error:', err);
+        } finally {
+          notificationsLoading.value = false;
+        }
       };
-
       const nextNotifications = () => { if (notificationsHasMore.value) loadNotifications(notificationOffset.value + 10); };
       const prevNotifications = () => { if (notificationOffset.value >= 10) loadNotifications(notificationOffset.value - 10); };
+
       const clearNotifications = async () => {
+        notificationsLoading.value = true;
         try {
-          await axios.post('http://localhost:5000/api/alerts/mark-read');
-          await loadNotifications(0);
-          fetchDashboardData();
-        } catch (err) { console.error(err); }
+          await axios.post('/api/alerts/mark-read');
+          notifications.value = [];
+        } catch (err) {
+          console.error('clearNotifications error:', err);
+        } finally {
+          notificationsLoading.value = false;
+        }
       };
 
-      const openNotification = (alert) => {
-        selectedNotification.value = alert;
-        showNotificationModal.value = true;
-      };
-
-      const closeNotificationModal = () => {
-        showNotificationModal.value = false;
-        selectedNotification.value = null;
-      };
+      const openNotification = (alert) => { selectedNotification.value = alert; showNotificationModal.value = true; };
+      const closeNotificationModal = () => { showNotificationModal.value = false; selectedNotification.value = null; };
 
       const markNotificationRead = async () => {
-        const alert = selectedNotification.value;
-        if (!alert) return;
+        if (!selectedNotification.value) return;
         try {
-          await axios.post(`http://localhost:5000/api/alerts/${alert.id}/mark-read`);
-          notifications.value = notifications.value.filter(n => n.id !== alert.id);
+          await axios.post(`/api/alerts/${selectedNotification.value.id}/mark-read`);
+          const idx = notifications.value.findIndex(n => n.id === selectedNotification.value.id);
+          if (idx !== -1) notifications.value[idx].is_read = true;
+        } catch (err) {
+          console.error('markNotificationRead error:', err);
+        } finally {
           closeNotificationModal();
-          fetchDashboardData();
-        } catch (err) { console.error(err); }
+        }
       };
 
+      // ----- Blacklist -----
       const loadBlacklist = async () => {
         try {
-          const { data } = await axios.get('http://localhost:5000/api/blacklist');
-          blacklist.value = data || [];
-        } catch (err) { console.error(err); }
+          const { data } = await axios.get('/api/blacklist');
+          blacklist.value = Array.isArray(data) ? data : (data.records || data);
+        } catch (err) {
+          console.error('loadBlacklist error:', err);
+        }
       };
 
+      // ----- Misc -----
       const logout = () => {
         localStorage.removeItem('financeguard_user');
+        localStorage.removeItem('financeguard_token');
         window.location = '/login';
       };
-
-      const refreshDashboard = () => {
-        fetchDashboardData();
-      };
-
+      const refreshDashboard = () => { fetchDashboardData(); };
       const toggleAutoRefresh = () => {
         autoRefreshEnabled.value = !autoRefreshEnabled.value;
-        if (autoRefreshEnabled.value) {
-          fetchDashboardData();
-        }
+        if (autoRefreshEnabled.value) { fetchDashboardData(); startAutoRefresh(); }
+        else if (dashboardRefreshTimer) { clearInterval(dashboardRefreshTimer); dashboardRefreshTimer = null; }
       };
-
       const startAutoRefresh = () => {
-        if (dashboardRefreshTimer) {
-          clearInterval(dashboardRefreshTimer);
-          dashboardRefreshTimer = null;
-        }
+        if (dashboardRefreshTimer) clearInterval(dashboardRefreshTimer);
         if (!autoRefreshEnabled.value) return;
         dashboardRefreshTimer = setInterval(() => {
-          if (activeTab.value === 'dashboard') {
-            fetchDashboardData();
-          }
+          if (activeTab.value === 'dashboard') fetchDashboardData();
         }, autoRefreshSeconds.value * 1000);
       };
 
-      onMounted(() => {
-        const savedUser = localStorage.getItem('financeguard_user');
-        if (!savedUser) {
-          window.location = '/login';
-          return;
-        }
+      // ----- Anomalies -----
+      async function loadAnomalies(page = 1) {
+        anomaliesLoading.value = true;
         try {
-          currentUser.value = JSON.parse(savedUser);
-        } catch {
-          localStorage.removeItem('financeguard_user');
-          window.location = '/login';
-          return;
+          const params = { ...anomalyFilters, limit: anomaliesLimit.value, offset: (page - 1) * anomaliesLimit.value };
+          const { data } = await axios.get('/api/anomalies', { params });
+          anomaliesList.value = data.records;
+          anomaliesTotal.value = data.total;
+          anomaliesPage.value = page;
+        } catch (err) {
+          console.error('loadAnomalies error:', err);
+        } finally {
+          anomaliesLoading.value = false;
         }
+      }
 
-        // Default to light; only go dark if user previously chose dark
-        const saved = localStorage.getItem('theme') || 'light';
-        theme.value = saved;
-        applyTheme(saved);
+      // ----- Borrower Search -----
+      async function searchBorrowers() {
+        if (!searchQuery.value.trim()) return;
+        searchPerformed.value = true;
+        try {
+          const { data } = await axios.get('/api/borrowers/search', { params: { q: searchQuery.value } });
+          searchResults.value = data.records;
+        } catch (err) {
+          console.error('searchBorrowers error:', err);
+        }
+      }
+      async function viewBorrowerProfile(borrowerId) {
+        showProfileModal.value = true;
+        profileLoading.value = true;
+        try {
+          const { data } = await axios.get(`/api/borrowers/${borrowerId}`);
+          profile.value = data;
+        } catch (err) {
+          console.error('viewBorrowerProfile error:', err);
+          profile.value = {};
+        } finally {
+          profileLoading.value = false;
+        }
+      }
 
+      // ----- Re-render charts when theme changes -----
+      watch(theme, () => {
+        if (stats.value && Object.keys(stats.value).length) {
+          renderTrendChart(trendData.value);
+          renderDistChart();
+        }
+      });
+
+      // ----- Auto-load anomalies tab on first visit -----
+      watch(activeTab, (newTab) => {
+        if (newTab === 'anomalies' && anomaliesList.value.length === 0) loadAnomalies();
+      });
+
+      // ----- Lifecycle -----
+      onMounted(() => {
+        const stored = localStorage.getItem('financeguard_user');
+        currentUser.value = stored ? JSON.parse(stored) : { full_name: 'Admin' };
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        theme.value = savedTheme;
+        applyTheme(savedTheme);
         fetchDashboardData();
         loadApplications();
         loadNotifications();
         loadBlacklist();
-
-        startAutoRefresh();
-      });
-          watch(trendData, (newTrend) => {
-              if (newTrend && newTrend.length) {
-                  renderTrendChart(newTrend);
-              }
-          }, { deep: true });
-
-          // Watch for stats changes and re-render pie chart
-          watch(() => stats.value, (newStats) => {
-              console.log('Stats updated:', newStats);
-              if (activeTab.value === 'dashboard') {
-                  // Small delay to ensure DOM is ready
-                  setTimeout(() => {
-                      renderDistChart();
-                  }, 50);
-              }
-          }, { deep: true });
-
-      watch(riskFilter, () => {
-        renderDistChart();
-        loadApplications(1);
-      });
-
-      watch(theme, () => {
-        renderTrendChart(trendData.value || []);
-        renderDistChart();
-      });
-
-      watch([autoRefreshEnabled, autoRefreshSeconds], () => {
         startAutoRefresh();
       });
 
-return {
+      // Return all reactive variables and methods
+      return {
         sidebarCollapsed, activeTab, stats, navItems,
-        applications, appPage, appHasMore, appLoading, applicationFeedback, riskFilter, filteredApplications,
+        applications, appPage, appHasMore, appLoading, applicationFeedback, riskFilter,
         notifications, notificationsLoading, notificationsHasMore, notificationOffset,
         showNotificationModal, selectedNotification, openNotification, closeNotificationModal, markNotificationRead,
         blacklist,
@@ -1035,6 +510,8 @@ return {
         toggleTheme, themeLabel, theme, logout, currentUser,
         refreshDashboard, isRefreshing, lastUpdated,
         autoRefreshEnabled, autoRefreshSeconds, autoRefreshOptions, toggleAutoRefresh,
+        searchQuery, searchResults, searchPerformed, showProfileModal, profileLoading, profile, searchBorrowers, viewBorrowerProfile,
+        anomaliesList, anomaliesLoading, anomaliesPage, anomaliesTotal, anomaliesLimit, anomalyFilters, loadAnomalies
       };
     },
     delimiters: ['[[', ']]']

@@ -1,0 +1,1049 @@
+{% raw %}
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinanceGuard | Admin Dashboard</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  
+  <!-- Vue 3 -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  
+  <!-- Axios -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  
+  <!-- Socket.io Client -->
+  <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+  
+  <style>
+    :root {
+      --brand: #3b82f6;
+      --accent: #111827;
+    }
+
+    * {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+    }
+
+    .dark body {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    }
+
+    /* Animations */
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .slide-in { animation: slideIn 0.3s ease forwards; }
+    .fade-in { animation: fadeIn 0.5s ease forwards; }
+
+    /* KPI Cards */
+    .kpi-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--brand), #06b6d4);
+    }
+
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--accent);
+      margin: 10px 0;
+    }
+
+    .kpi-label {
+      font-size: 12px;
+      color: #6b7280;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+    }
+
+    /* Table Styles */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .data-table th {
+      background: #f3f4f6;
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #6b7280;
+      border-bottom: 2px solid #e5e7eb;
+    }
+
+    .data-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .data-table tbody tr:hover {
+      background: #f9fafb;
+    }
+
+    /* Badge Styles */
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .badge-approved {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .badge-rejected {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .badge-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .badge-low {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .badge-medium {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .badge-high {
+      background: #fed7aa;
+      color: #92400e;
+    }
+
+    .badge-critical {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    /* Dark Mode Support */
+    .dark .kpi-card {
+      background: #1f2937;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .dark .kpi-value {
+      color: #f9fafb;
+    }
+
+    .dark .data-table {
+      background: #1f2937;
+    }
+
+    .dark .data-table th {
+      background: #111827;
+      border-bottom-color: #374151;
+    }
+
+    .dark .data-table td {
+      border-bottom-color: #374151;
+    }
+
+    .dark .data-table tbody tr:hover {
+      background: #374151;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .dark .modal-content {
+      background: #1f2937;
+    }
+
+    /* Toast Notifications */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: white;
+      border-left: 4px solid var(--brand);
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      min-width: 320px;
+      animation: slideIn 0.3s ease;
+    }
+
+    .toast.success {
+      border-left-color: #10b981;
+    }
+
+    .toast.error {
+      border-left-color: #ef4444;
+    }
+
+    .toast.warning {
+      border-left-color: #f59e0b;
+    }
+
+    /* Loading State */
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: skeleton-loading 1.5s infinite;
+    }
+
+    @keyframes skeleton-loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+  </style>
+</head>
+
+<body class="h-full bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100">
+<div id="app" class="min-h-screen">
+
+  <!-- Main Container -->
+  <div class="flex h-full">
+    
+    <!-- SIDEBAR (Collapsible) -->
+    <aside v-show="!sidebarCollapsed" class="w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 fixed h-full overflow-y-auto">
+      <div class="p-6 border-b border-gray-200 dark:border-gray-800">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+            <span class="text-xl font-bold text-blue-600 dark:text-blue-400">📊</span>
+          </div>
+          <div>
+            <h1 class="text-sm font-bold">FinanceGuard</h1>
+            <p class="text-xs text-gray-500">Admin Dashboard</p>
+          </div>
+        </div>
+      </div>
+
+      <nav class="p-4 space-y-2">
+        <button v-for="tab in tabs" :key="tab.id"
+          @click="activeTab = tab.id"
+          :class="[
+            'w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all',
+            activeTab === tab.id
+              ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 font-semibold border-l-4 border-blue-600'
+              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+          ]"
+        >
+          <span class="text-lg">{{ tab.icon }}</span>
+          <span class="text-sm">{{ tab.label }}</span>
+        </button>
+      </nav>
+
+      <!-- User Section -->
+      <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600"></div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-semibold truncate">Admin User</p>
+            <p class="text-xs text-gray-500">Super Admin</p>
+          </div>
+          <button @click="toggleTheme" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg">
+            {{ theme === 'dark' ? '☀️' : '🌙' }}
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main :class="['flex-1', sidebarCollapsed ? '' : 'ml-64']" class="transition-all">
+      
+      <!-- Header -->
+      <header class="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10">
+        <div class="px-6 py-4 flex items-center justify-between">
+          <div class="flex items-center gap-4">
+            <button @click="sidebarCollapsed = !sidebarCollapsed" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
+              ≡
+            </button>
+            <h2 class="text-xl font-bold">{{ getTabLabel(activeTab) }}</h2>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="relative">
+              <input type="text" v-model="searchQuery" placeholder="Search..." class="px-4 py-2 pl-10 rounded-lg border border-gray-200 dark:border-gray-700 dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 outline-none">
+              <span class="absolute left-3 top-2.5">🔍</span>
+            </div>
+            <button class="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
+              🔔
+              <span v-if="unreadAlerts > 0" class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content Area -->
+      <section class="p-6 overflow-auto" :style="{ height: 'calc(100vh - 80px)' }">
+        
+        <!-- Dashboard Overview Tab -->
+        <div v-if="activeTab === 'overview'" class="space-y-6 fade-in">
+          
+          <!-- Date Range Selector -->
+          <div class="flex gap-4 items-center bg-white dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-800">
+            <label class="text-sm font-semibold">Period:</label>
+            <select v-model="selectedPeriod" class="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800">
+              <option value="7">Last 7 days</option>
+              <option value="30">Last 30 days</option>
+              <option value="90">Last 90 days</option>
+            </select>
+            <button @click="loadDashboardData" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+              Refresh
+            </button>
+          </div>
+
+          <!-- KPI Cards Row 1 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <!-- Approval Rate Card -->
+            <div class="kpi-card slide-in">
+              <div class="kpi-label">Approval Rate</div>
+              <div class="kpi-value">{{ dashboardData.approvalRate?.rate || 0 }}%</div>
+              <div class="text-xs text-gray-500">{{ dashboardData.approvalRate?.approved || 0 }} approved</div>
+            </div>
+
+            <!-- Avg Decision Time Card -->
+            <div class="kpi-card slide-in" style="animation-delay: 0.1s">
+              <div class="kpi-label">Avg Decision Time</div>
+              <div class="kpi-value">{{ dashboardData.decisionTime?.avg_hours || 0 }}</div>
+              <div class="text-xs text-gray-500">hours</div>
+            </div>
+
+            <!-- Credit Bureau Coverage Card -->
+            <div class="kpi-card slide-in" style="animation-delay: 0.2s">
+              <div class="kpi-label">CB Coverage</div>
+              <div class="kpi-value">{{ dashboardData.cbCoverage?.coverage_percent || 0 }}%</div>
+              <div class="text-xs text-gray-500">{{ dashboardData.cbCoverage?.with_credit_bureau || 0 }} with data</div>
+            </div>
+
+            <!-- Total Applications Card -->
+            <div class="kpi-card slide-in" style="animation-delay: 0.3s">
+              <div class="kpi-label">Total Applications</div>
+              <div class="kpi-value">{{ dashboardData.riskDistribution?.total || 0 }}</div>
+              <div class="text-xs text-gray-500">This period</div>
+            </div>
+
+          </div>
+
+          <!-- Risk Distribution & Trend Charts -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <!-- Risk Distribution Pie Chart -->
+            <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
+              <h3 class="text-lg font-semibold mb-4">Risk Distribution</h3>
+              <canvas id="riskDistributionChart"></canvas>
+              <div class="mt-4 grid grid-cols-2 gap-2 text-sm">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+                  <span>Low: {{ dashboardData.riskDistribution?.low || 0 }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 bg-yellow-500 rounded-full"></span>
+                  <span>Medium: {{ dashboardData.riskDistribution?.medium || 0 }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 bg-orange-500 rounded-full"></span>
+                  <span>High: {{ dashboardData.riskDistribution?.high || 0 }}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 bg-red-500 rounded-full"></span>
+                  <span>Critical: {{ dashboardData.riskDistribution?.critical || 0 }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Daily Trend Chart -->
+            <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
+              <h3 class="text-lg font-semibold mb-4">Applications Trend ({{ selectedPeriod }} days)</h3>
+              <canvas id="trendChart"></canvas>
+            </div>
+
+          </div>
+
+          <!-- Recent Alerts -->
+          <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
+            <h3 class="text-lg font-semibold mb-4">Recent Alerts</h3>
+            <div v-if="dashboardData.recentAlerts && dashboardData.recentAlerts.length > 0" class="space-y-3">
+              <div v-for="alert in dashboardData.recentAlerts" :key="alert.id" 
+                :class="['p-3 rounded-lg border-l-4', getAlertClass(alert.severity)]">
+                <p class="font-semibold text-sm">{{ alert.message }}</p>
+                <p class="text-xs text-gray-500 mt-1">{{ formatDate(alert.created_at) }}</p>
+              </div>
+            </div>
+            <p v-else class="text-gray-500 text-center py-8">No alerts</p>
+          </div>
+
+        </div>
+
+        <!-- Applications Tab -->
+        <div v-if="activeTab === 'applications'" class="space-y-6 fade-in">
+          
+          <!-- Advanced Filters -->
+          <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
+            <h3 class="text-lg font-semibold mb-4">Advanced Filters</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label class="block text-sm font-semibold mb-2">Borrower Name</label>
+                <input v-model="filters.borrowerName" type="text" placeholder="Search..." class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800">
+              </div>
+              <div>
+                <label class="block text-sm font-semibold mb-2">Risk Level</label>
+                <select v-model="filters.riskLabel" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800">
+                  <option value="">All</option>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="critical">Critical</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-semibold mb-2">Status</label>
+                <select v-model="filters.decisionStatus" class="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800">
+                  <option value="">All</option>
+                  <option value="approved">Approved</option>
+                  <option value="rejected">Rejected</option>
+                  <option value="pending">Pending</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-semibold mb-2">Loan Amount</label>
+                <input v-model="filters.loanAmount" type="range" min="0" max="50000" step="1000" class="w-full">
+                <p class="text-xs text-gray-500 mt-1">Max: ${{ filters.loanAmount }}</p>
+              </div>
+            </div>
+            <div class="flex gap-2 mt-4">
+              <button @click="loadApplications" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                Apply Filters
+              </button>
+              <button @click="resetFilters" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300">
+                Reset
+              </button>
+              <button @click="exportApplicationsCSV" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 ml-auto">
+                📥 Export CSV
+              </button>
+              <button @click="exportApplicationsExcel" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700">
+                📥 Export Excel
+              </button>
+            </div>
+          </div>
+
+          <!-- Applications Table -->
+          <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm overflow-hidden">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Loan Amount</th>
+                  <th>Risk Score</th>
+                  <th>Risk Level</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="app in applications" :key="app.id" class="hover:bg-blue-50 dark:hover:bg-blue-900/20 cursor-pointer">
+                  <td class="mono">{{ app.id.substring(0, 8) }}...</td>
+                  <td>{{ app.full_name }}</td>
+                  <td>${{ app.loan_amount.toLocaleString() }}</td>
+                  <td>{{ app.risk_score }}</td>
+                  <td>
+                    <span :class="['badge', `badge-${app.risk_label}`]">
+                      {{ app.risk_label }}
+                    </span>
+                  </td>
+                  <td>
+                    <span :class="['badge', `badge-${app.decision_status}`]">
+                      {{ app.decision_status }}
+                    </span>
+                  </td>
+                  <td class="text-sm">{{ formatDate(app.created_at) }}</td>
+                  <td>
+                    <button @click="showApplicationDetail(app)" class="text-blue-600 hover:underline text-sm font-semibold">
+                      View
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div v-if="applications.length === 0" class="p-8 text-center text-gray-500">
+              No applications found
+            </div>
+          </div>
+
+          <!-- Pagination -->
+          <div v-if="applicationsPagination.pages > 1" class="flex justify-between items-center">
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              Page {{ applicationsPagination.page }} of {{ applicationsPagination.pages }}
+            </p>
+            <div class="flex gap-2">
+              <button @click="applicationsPagination.page--" :disabled="applicationsPagination.page === 1" 
+                class="px-4 py-2 border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50">
+                ← Previous
+              </button>
+              <button @click="applicationsPagination.page++" :disabled="applicationsPagination.page >= applicationsPagination.pages"
+                class="px-4 py-2 border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 disabled:opacity-50">
+                Next →
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Anomalies Tab -->
+        <div v-if="activeTab === 'anomalies'" class="space-y-6 fade-in">
+          <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
+            <h3 class="text-lg font-semibold mb-4">Anomaly Detection</h3>
+            <p class="text-gray-600 dark:text-gray-400">Anomaly detection and management interface coming soon...</p>
+          </div>
+        </div>
+
+        <!-- Borrower Profiles Tab -->
+        <div v-if="activeTab === 'profiles'" class="space-y-6 fade-in">
+          <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
+            <h3 class="text-lg font-semibold mb-4">Borrower Profiles</h3>
+            <p class="text-gray-600 dark:text-gray-400">Borrower profile and history interface coming soon...</p>
+          </div>
+        </div>
+
+        <!-- Reports Tab -->
+        <div v-if="activeTab === 'reports'" class="space-y-6 fade-in">
+          <div class="bg-white dark:bg-gray-900 p-6 rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm">
+            <h3 class="text-lg font-semibold mb-4">Reports & Analytics</h3>
+            <p class="text-gray-600 dark:text-gray-400">Reports and custom analytics coming soon...</p>
+          </div>
+        </div>
+
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Modal: Application Detail -->
+  <div v-if="selectedApplication" class="modal-overlay" @click.self="selectedApplication = null">
+    <div class="modal-content">
+      <div class="flex justify-between items-start mb-6">
+        <h2 class="text-2xl font-bold">{{ selectedApplication.full_name }}</h2>
+        <button @click="selectedApplication = null" class="text-2xl leading-none">&times;</button>
+      </div>
+      
+      <div class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <p class="text-sm text-gray-500">Application ID</p>
+            <p class="font-semibold mono">{{ selectedApplication.id }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Loan Amount</p>
+            <p class="font-semibold">${{ selectedApplication.loan_amount.toLocaleString() }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Risk Score</p>
+            <p class="font-semibold">{{ selectedApplication.risk_score }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Risk Level</p>
+            <span :class="['badge', `badge-${selectedApplication.risk_label}`]">
+              {{ selectedApplication.risk_label }}
+            </span>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Status</p>
+            <span :class="['badge', `badge-${selectedApplication.decision_status}`]">
+              {{ selectedApplication.decision_status }}
+            </span>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Created</p>
+            <p class="font-semibold">{{ formatDate(selectedApplication.created_at) }}</p>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-gray-200 dark:border-gray-700">
+          <button @click="selectedApplication = null" class="w-full px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container">
+    <div v-for="(toast, idx) in toasts" :key="idx" :class="['toast', `toast-${toast.type}`]">
+      {{ toast.message }}
+    </div>
+  </div>
+
+  <!-- Login Modal -->
+  <div v-if="loginFormVisible" class="modal-overlay">
+    <div class="modal-content max-w-md">
+      <div class="text-center mb-6">
+        <h1 class="text-2xl font-semibold text-neutral-900">Team login</h1>
+        <p class="text-sm text-neutral-500">Access the FinanceGuard dashboard.</p>
+      </div>
+      <form @submit.prevent="login" class="space-y-4">
+        <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-500">
+          Email
+          <input v-model="loginData.email" type="email" required
+                 class="mt-2 w-full rounded-xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-accent" />
+        </label>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-neutral-500">
+          Password
+          <input v-model="loginData.password" type="password" required
+                 class="mt-2 w-full rounded-xl border border-neutral-200 px-4 py-3 text-sm outline-none focus:border-accent" />
+        </label>
+        <button type="submit" class="w-full rounded-xl bg-neutral-900 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-neutral-800">
+          Login
+        </button>
+      </form>
+      <p class="text-sm text-center text-red-500 mt-4">{{ loginMessage }}</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const { createApp, ref, computed, onMounted, watch } = Vue;
+
+createApp({
+  setup() {
+    // State
+    const activeTab = ref('overview');
+    const sidebarCollapsed = ref(false);
+    const theme = ref('light');
+    const searchQuery = ref('');
+    const selectedPeriod = ref('30');
+    
+    // Data
+    const dashboardData = ref({
+      approvalRate: {},
+      riskDistribution: {},
+      decisionTime: {},
+      cbCoverage: {},
+      dailyStats: [],
+      recentAlerts: []
+    });
+    
+    const applications = ref([]);
+    const applicationsPagination = ref({ page: 1, limit: 20, total: 0, pages: 1 });
+    
+    const filters = ref({
+      borrowerName: '',
+      riskLabel: '',
+      decisionStatus: '',
+      loanAmount: 50000
+    });
+    
+    const selectedApplication = ref(null);
+    const toasts = ref([]);
+    const unreadAlerts = ref(0);
+    const loginFormVisible = ref(false);
+    const loginData = ref({ email: '', password: '' });
+    const loginMessage = ref('');
+    
+    // Chart instances
+    let riskDistributionChart = null;
+    let trendChart = null;
+    
+    // Tabs configuration
+    const tabs = [
+      { id: 'overview', label: 'Overview', icon: '📊' },
+      { id: 'applications', label: 'Applications', icon: '📋' },
+      { id: 'anomalies', label: 'Anomalies', icon: '⚠️' },
+      { id: 'profiles', label: 'Borrower Profiles', icon: '👤' },
+      { id: 'reports', label: 'Reports', icon: '📄' }
+    ];
+
+    // Methods
+    const getTabLabel = (tabId) => {
+      const tab = tabs.find(t => t.id === tabId);
+      return tab ? tab.label : '';
+    };
+
+    const loadDashboardData = async () => {
+      try {
+        const response = await axios.get(`/api/dashboard/summary?days=${selectedPeriod.value}`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('financeguard_token')}` }
+        });
+        dashboardData.value = response.data;
+        
+        // Update unread alerts count
+        unreadAlerts.value = (response.data.recentAlerts || []).filter(a => !a.is_read).length;
+        
+        // Initialize charts
+        setTimeout(() => {
+          initializeCharts();
+        }, 100);
+        
+        showToast('Dashboard data loaded', 'success');
+      } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        showToast('Failed to load dashboard data', 'error');
+      }
+    };
+
+    const loadApplications = async () => {
+      try {
+        const params = new URLSearchParams({
+          page: applicationsPagination.value.page,
+          limit: applicationsPagination.value.limit,
+          borrower_name: filters.value.borrowerName,
+          risk_label: filters.value.riskLabel,
+          decision_status: filters.value.decisionStatus,
+          max_amount: filters.value.loanAmount
+        });
+        
+        const response = await axios.get(`/api/dashboard/applications?${params}`, {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('financeguard_token')}` }
+        });
+        
+        applications.value = response.data.data;
+        applicationsPagination.value = {
+          page: response.data.page,
+          limit: response.data.limit,
+          total: response.data.total,
+          pages: response.data.pages
+        };
+      } catch (error) {
+        console.error('Error loading applications:', error);
+        showToast('Failed to load applications', 'error');
+      }
+    };
+
+    const resetFilters = () => {
+      filters.value = {
+        borrowerName: '',
+        riskLabel: '',
+        decisionStatus: '',
+        loanAmount: 50000
+      };
+      applicationsPagination.value.page = 1;
+      loadApplications();
+    };
+
+    const exportApplicationsCSV = async () => {
+      try {
+        const response = await axios.get('/api/dashboard/applications/export/csv', {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('financeguard_token')}` }
+        });
+        // Trigger download
+        showToast('CSV exported successfully', 'success');
+      } catch (error) {
+        showToast('Failed to export CSV', 'error');
+      }
+    };
+
+    const exportApplicationsExcel = async () => {
+      try {
+        const response = await axios.get('/api/dashboard/applications/export/excel', {
+          headers: { 'Authorization': `Bearer ${localStorage.getItem('financeguard_token')}` }
+        });
+        showToast('Excel exported successfully', 'success');
+      } catch (error) {
+        showToast('Failed to export Excel', 'error');
+      }
+    };
+
+    const showApplicationDetail = (app) => {
+      selectedApplication.value = app;
+    };
+
+    const formatDate = (dateString) => {
+      if (!dateString) return 'N/A';
+      return new Date(dateString).toLocaleDateString();
+    };
+
+    const getAlertClass = (severity) => {
+      const classes = {
+        critical: 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700 text-red-800 dark:text-red-200',
+        high: 'bg-orange-50 dark:bg-orange-900/20 border-orange-300 dark:border-orange-700 text-orange-800 dark:text-orange-200',
+        medium: 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-300 dark:border-yellow-700 text-yellow-800 dark:text-yellow-200',
+        low: 'bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700 text-blue-800 dark:text-blue-200'
+      };
+      return classes[severity] || classes.low;
+    };
+
+    const toggleTheme = () => {
+      theme.value = theme.value === 'light' ? 'dark' : 'light';
+      document.documentElement.classList.toggle('dark', theme.value === 'dark');
+      localStorage.setItem('theme', theme.value);
+    };
+
+    const showToast = (message, type = 'info') => {
+      const id = toasts.value.length;
+      toasts.value.push({ message, type });
+      setTimeout(() => {
+        toasts.value.splice(0, 1);
+      }, 3000);
+    };
+
+    const login = async () => {
+      loginMessage.value = '';
+      try {
+        const response = await axios.post('/api/login', loginData.value);
+        localStorage.setItem('financeguard_user', JSON.stringify(response.data.user));
+        localStorage.setItem('financeguard_token', response.data.token);
+        loginFormVisible.value = false;
+        showToast(`Welcome back, ${response.data.user.full_name}!`, 'success');
+        loadDashboardData();
+        loadApplications();
+      } catch (err) {
+        loginMessage.value = err?.response?.data?.error || 'Unable to sign in.';
+      }
+    };
+
+    const initializeCharts = () => {
+      // Risk Distribution Pie Chart
+      const riskCtx = document.getElementById('riskDistributionChart');
+      if (riskCtx && dashboardData.value.riskDistribution) {
+        if (riskDistributionChart) {
+          riskDistributionChart.destroy();
+        }
+        
+        riskDistributionChart = new Chart(riskCtx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Low', 'Medium', 'High', 'Critical'],
+            datasets: [{
+              data: [
+                dashboardData.value.riskDistribution.low || 0,
+                dashboardData.value.riskDistribution.medium || 0,
+                dashboardData.value.riskDistribution.high || 0,
+                dashboardData.value.riskDistribution.critical || 0
+              ],
+              backgroundColor: [
+                '#10b981',
+                '#f59e0b',
+                '#f97316',
+                '#ef4444'
+              ],
+              borderRadius: 8
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: {
+                position: 'bottom'
+              }
+            }
+          }
+        });
+      }
+
+      // Daily Trend Chart
+      const trendCtx = document.getElementById('trendChart');
+      if (trendCtx && dashboardData.value.dailyStats) {
+        if (trendChart) {
+          trendChart.destroy();
+        }
+        
+        const dates = dashboardData.value.dailyStats.map(s => s.date);
+        const appCounts = dashboardData.value.dailyStats.map(s => s.applications);
+        const approvedCounts = dashboardData.value.dailyStats.map(s => s.approved);
+        
+        trendChart = new Chart(trendCtx, {
+          type: 'line',
+          data: {
+            labels: dates,
+            datasets: [
+              {
+                label: 'Applications',
+                data: appCounts,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.4
+              },
+              {
+                label: 'Approved',
+                data: approvedCounts,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.4
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+              legend: {
+                position: 'bottom'
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        });
+      }
+    };
+
+    // Watchers
+    watch(() => activeTab.value, () => {
+      if (activeTab.value === 'applications') {
+        loadApplications();
+      }
+    });
+
+    watch(() => applicationsPagination.value.page, () => {
+      loadApplications();
+    });
+
+    watch(() => selectedPeriod.value, () => {
+      loadDashboardData();
+    });
+
+    // Lifecycle
+    onMounted(() => {
+      // Load theme from localStorage
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      theme.value = savedTheme;
+      if (savedTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+      }
+
+      const token = localStorage.getItem('financeguard_token');
+      if (!token) {
+        loginFormVisible.value = true;
+        return;
+      }
+
+      // Load initial data
+      loadDashboardData();
+      loadApplications();
+
+      // Initialize WebSocket connection
+      // const socket = io();
+      // socket.on('new_application', (data) => {
+      //   showToast(`New application from ${data.name}`, 'info');
+      //   loadDashboardData();
+      // });
+      // socket.on('anomaly_detected', (data) => {
+      //   showToast(`Anomaly detected: ${data.message}`, 'warning');
+      // });
+    });
+
+    return {
+      activeTab,
+      sidebarCollapsed,
+      theme,
+      searchQuery,
+      selectedPeriod,
+      dashboardData,
+      applications,
+      applicationsPagination,
+      filters,
+      selectedApplication,
+      toasts,
+      unreadAlerts,
+      loginFormVisible,
+      loginData,
+      loginMessage,
+      getTabLabel,
+      loadDashboardData,
+      loadApplications,
+      resetFilters,
+      exportApplicationsCSV,
+      exportApplicationsExcel,
+      showApplicationDetail,
+      formatDate,
+      getAlertClass,
+      toggleTheme,
+      showToast,
+      login
+    };
+  }
+}).mount('#app');
+</script>
+
+</body>
+</html>
+{% endraw %}

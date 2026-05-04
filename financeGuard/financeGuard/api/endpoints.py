@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from flask import jsonify, render_template, request, url_for, send_file
+from flask import jsonify, render_template, request, url_for, send_file, redirect
 from financeGuard.auth.token import token_required
 from financeGuard import app, db, mail
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,6 +9,7 @@ from sqlalchemy import (
     DateTime, Text, func, select, update, desc, asc, or_
 )
 import os, asyncio, random, datetime, pickle, re, uuid, logging, json
+import jwt
 from concurrent.futures import ThreadPoolExecutor
 from financeGuard.api import AsyncSessionFactory, init_db, log
 from financeGuard.models.models import BlacklistedUser, Borrower, User, Alert, Transaction, now_local
@@ -972,6 +973,22 @@ async def seed_data():
             await session.commit()
     log.info("Demo portfolio seeded")
 
+    # Create default admin user if none exists
+    async with AsyncSessionFactory() as session:
+        result = await session.execute(select(func.count(User.id)))
+        if result.scalar() == 0:
+            admin_user = User(
+                id=str(uuid.uuid4()),
+                full_name="Admin User",
+                email="admin@finaneguard.local",
+                password_hash=generate_password_hash("admin123")
+            )
+            session.add(admin_user)
+            await session.commit()
+            log.info("Default admin user created: admin@finaneguard.local / admin123")
+        else:
+            log.info("Admin user already exists; skipping creation")
+
 
 # --------------------------------------------------------------
 #  Mock Credit Bureau  (simulates external MFI/bank loan data)
@@ -998,73 +1015,17 @@ MOCK_CREDIT_DATA: dict[str, dict] = {
     # ── HIGH RISK: active loans at 2 MFIs, 9 recent applications, poor profile
 "12-654321B34": {
     "full_name": "Panashe Nyawiri",
-    "active_loans_elsewhere": 3,
-    "outstanding_elsewhere": 15000.0,
-    "repayment_rate_elsewhere": 35.0,
-    "days_past_due_elsewhere": 120,
-    "recent_applications_elsewhere": 12,
-    "unsettled_loans_elsewhere": 4,
-    "institutions": ["Zambuko Trust", "Untu Capital", "CABS MicroFinance"],
-    "credit_score": 12,
-    "risk_flag": "HIGH",
-    "notes": "Severely over‑indebted, very low repayment rate."
-},    # ── MEDIUM RISK: one loan elsewhere, mostly on track
-    "63-123456A12": {
-        "full_name": "Theresa Machache",
-        "active_loans_elsewhere": 1,
-        "outstanding_elsewhere": 1500.0,
-        "repayment_rate_elsewhere": 95.0,
-        "days_past_due_elsewhere": 0,
-        "recent_applications_elsewhere": 3,
-        "unsettled_loans_elsewhere": 1,
-        "institutions": ["Untu Capital"],
-        "credit_score": 61,
-        "risk_flag": "MEDIUM",
-        "notes": "Existing loan at Untu Capital; repayment history acceptable.",
-    },
-    # ── LOW RISK: clean bureau record
-    "48-234567B34": {
-        "full_name": "Farai Moyo",
-        "active_loans_elsewhere": 0,
-        "outstanding_elsewhere": 0.0,
-        "repayment_rate_elsewhere": 100.0,
-        "days_past_due_elsewhere": 0,
-        "recent_applications_elsewhere": 1,
-        "unsettled_loans_elsewhere": 0,
-        "institutions": [],
-        "credit_score": 88,
-        "risk_flag": "LOW",
-        "notes": "No external loans. Clean bureau record.",
-    },
-    # ── HIGH RISK: severe delinquency, two MFIs chasing
-    "22-345678C45": {
-        "full_name": "Tatenda Chirwa",
-        "active_loans_elsewhere": 3,
-        "outstanding_elsewhere": 7800.0,
-        "repayment_rate_elsewhere": 40.0,
-        "days_past_due_elsewhere": 120,
-        "recent_applications_elsewhere": 5,
-        "unsettled_loans_elsewhere": 3,
-        "institutions": ["CABS MicroFinance", "GetBucks Zimbabwe", "Credsure"],
-        "credit_score": 14,
-        "risk_flag": "HIGH",
-        "notes": "Severely delinquent (120 days). Active at 3 institutions simultaneously.",
-    },
-    # ── MEDIUM RISK: previously defaulted, now recovering
-    "51-456789D56": {
-        "full_name": "Rutendo Dube",
-        "active_loans_elsewhere": 1,
-        "outstanding_elsewhere": 950.0,
-        "repayment_rate_elsewhere": 78.0,
-        "days_past_due_elsewhere": 30,
-        "recent_applications_elsewhere": 2,
-        "unsettled_loans_elsewhere": 1,
-        "institutions": ["Africa Unity Savings"],
-        "credit_score": 49,
-        "risk_flag": "MEDIUM",
-        "notes": "One prior default 18 months ago. Currently in repayment plan.",
-    },
-    # ── LOW RISK: long good history, fully settled
+    "active_loans_elsewhere": 0,
+    "outstanding_elsewhere": 0.0,
+    "repayment_rate_elsewhere": 98.0,
+    "days_past_due_elsewhere": 0,
+    "recent_applications_elsewhere": 1,
+    "unsettled_loans_elsewhere": 0,
+    "institutions": [],
+    "credit_score": 85,
+    "risk_flag": "LOW",
+    "notes": "Clean record. All previous loans settled."
+},    # ── LOW RISK: long good history, fully settled
     "67-567890E67": {
         "full_name": "Chiedza Mutasa",
         "active_loans_elsewhere": 0,
@@ -1317,14 +1278,23 @@ async def tracking_page():
     return render_template("tracking.html")
 
 
-@app.route("/dashboard")
-async def dashboard():
+@app.route("/dashboard-old")
+async def old_dashboard():
     return render_template("dashboard/dashboard.html")
 
+@app.route("/dashboard-new")
+async def dashboard_new():
+    return render_template("dashboard/dashboard.html")
 
 @app.route("/login")
 async def login_page():
     return render_template("dashboard/index.html")
+
+
+@app.route("/api/validate-token", methods=["GET"])
+@token_required
+def validate_token(current_user):
+    return jsonify({"valid": True, "user": current_user})
 
 
 @app.route("/signup")
@@ -1355,23 +1325,52 @@ async def signup():
 
 
 @app.route("/api/login", methods=["POST"])
-async def login():
+def login():
+    from financeGuard.models.models import User
+    from financeGuard.api import AsyncSessionFactory
+    from werkzeug.security import check_password_hash
+    from sqlalchemy import select, func
+    import asyncio
     data = request.get_json(silent=True) or {}
     email = (data.get("email") or "").strip()
     password = data.get("password")
     if not email or not password:
-        return jsonify({"error": "Email and password are required."}), 400
+        return jsonify({"error": "Email and password required"}), 400
     try:
-        async with AsyncSessionFactory() as session:
-            result = await session.execute(select(User).where(func.lower(User.email) == email.lower()))
-            user = result.scalar_one_or_none()
-            if not user or not check_password_hash(user.password_hash, password):
-                return jsonify({"error": "Invalid credentials."}), 401
-            return jsonify({"success": True, "user": user.to_dict()})
-    except Exception:
-        log.exception("login() error")
-        return jsonify({"error": "Unable to authenticate."}), 500
+        # Run async code in a new event loop
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        async def check():
+            async with AsyncSessionFactory() as session:
+                result = await session.execute(select(User).where(func.lower(User.email) == email.lower()))
+                user = result.scalar_one_or_none()
+                if not user:
+                    return None
+                if not check_password_hash(user.password_hash, password):
+                    return None
+                return user
+        user = loop.run_until_complete(check())
+        loop.close()
+        if not user:
+            return jsonify({"error": "Invalid credentials"}), 401
 
+        token_payload = {
+            "public_id": str(user.id),
+            "email": user.email,
+            "full_name": user.full_name,
+            "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=2)
+        }
+        token = jwt.encode(
+            token_payload,
+            os.getenv('SECRET_KEY', app.config.get('SECRET_KEY', 'your-secret-key')),
+            algorithm='HS256'
+        )
+
+        return jsonify({"success": True, "user": user.to_dict(), "token": token})
+    except Exception as exc:
+        import traceback
+        traceback.print_exc()  # prints full error to terminal
+        return jsonify({"error": f"Login error: {str(exc)}"}), 500
 
 @app.route('/api/parse-payslip', methods=['POST'])
 def parse_payslip():
@@ -1741,7 +1740,127 @@ async def risk_trend():
     except Exception:
         log.exception("risk_trend() DB error")
         return jsonify([]), 200
+# -------------------- Borrower Search API --------------------
 
+# -------------------- Anomalies API --------------------
+@app.route("/api/anomalies")
+async def get_anomalies():
+    """
+    GET /api/anomalies?severity=HIGH&borrower_name=&start_date=&end_date=&limit=20&offset=0
+    """
+    try:
+        severity = request.args.get('severity', '').strip().upper()
+        borrower_name = request.args.get('borrower_name', '').strip()
+        start_date = request.args.get('start_date', '')
+        end_date = request.args.get('end_date', '')
+        limit = min(100, int(request.args.get('limit', 20)))
+        offset = max(0, int(request.args.get('offset', 0)))
+    except ValueError:
+        limit = 20
+        offset = 0
+
+    async with AsyncSessionFactory() as session:
+        query = select(Alert)
+
+        # ---- Severity filter -------------------------------------------------
+        if severity and severity in {'HIGH', 'MEDIUM', 'LOW', 'CRITICAL', 'INFO'}:
+            # Admin explicitly chose a severity – honour it
+            query = query.where(Alert.severity == severity)
+        else:
+            # Default: hide purely informational alerts (NEW_USER_NOTIFICATION, etc.)
+            query = query.where(Alert.severity != 'INFO')
+
+        # ---- Other filters --------------------------------------------------
+        if borrower_name:
+            query = query.where(Alert.borrower_name.contains(borrower_name))
+        if start_date:
+            query = query.where(Alert.timestamp >= datetime.datetime.fromisoformat(start_date))
+        if end_date:
+            query = query.where(Alert.timestamp <= datetime.datetime.fromisoformat(end_date))
+
+        # ---- Count total for pagination -------------------------------------
+        count_query = select(func.count()).select_from(query.subquery())
+        total = (await session.execute(count_query)).scalar() or 0
+
+        # ---- Final result set -----------------------------------------------
+        query = query.order_by(desc(Alert.timestamp)).offset(offset).limit(limit)
+        result = await session.execute(query)
+        alerts = result.scalars().all()
+
+        return jsonify({
+            "total": total,
+            "limit": limit,
+            "offset": offset,
+            "records": [a.to_dict() for a in alerts]
+        })# -------------------- Borrower Search API --------------------
+@app.route("/api/borrowers/search")
+async def search_borrowers():
+    """GET /api/borrowers/search?q=name_or_id"""
+    q = request.args.get('q', '').strip().lower()
+    if len(q) < 2:
+        return jsonify({"records": []})
+    async with AsyncSessionFactory() as session:
+        stmt = select(Borrower).where(
+            or_(
+                func.lower(Borrower.full_name).contains(q),
+                Borrower.id.contains(q.upper())
+            )
+        ).limit(20)
+        result = await session.execute(stmt)
+        borrowers = result.scalars().all()
+        return jsonify({
+            "records": [{
+                "id": b.id,
+                "full_name": b.full_name,
+                "salary": b.salary,
+                "risk_score": b.risk_score,
+                "risk_label": b.risk_label,
+                "created_at": b.created_at.isoformat() if b.created_at else None
+            } for b in borrowers]
+        })
+
+@app.route("/api/borrowers/<borrower_id>")
+async def get_borrower_profile(borrower_id: str):
+    """Full profile: borrower + transactions + alerts + credit bureau"""
+    async with AsyncSessionFactory() as session:
+        borrower = await session.get(Borrower, borrower_id)
+        if not borrower:
+            return jsonify({"error": "Borrower not found"}), 404
+
+        # Transactions (assessments only)
+        tx_result = await session.execute(
+            select(Transaction).where(Transaction.borrower_id == borrower_id)
+            .order_by(desc(Transaction.timestamp))
+        )
+        transactions = tx_result.scalars().all()
+
+        # Alerts
+        alerts_result = await session.execute(
+            select(Alert).where(Alert.borrower_id == borrower_id)
+            .order_by(desc(Alert.timestamp))
+        )
+        alerts = alerts_result.scalars().all()
+
+        # Credit bureau data (if national_id stored)
+        credit_bureau = None
+        if hasattr(borrower, 'national_id') and borrower.national_id:
+            credit_bureau = _fetch_credit_bureau(borrower.national_id)
+
+        return jsonify({
+            "borrower": borrower.to_dict(),
+            "transactions": [{
+                "id": t.id,
+                "type": t.type,
+                "amount": t.amount,
+                "description": t.description,
+                "risk_score_after": t.risk_score_after,
+                "risk_label_after": t.risk_label_after,
+                "status": t.status,
+                "timestamp": t.timestamp.isoformat()
+            } for t in transactions],
+            "alerts": [a.to_dict() for a in alerts],
+            "credit_bureau": credit_bureau
+        })
 
 @app.route("/api/assess", methods=["POST"])
 async def assess():
