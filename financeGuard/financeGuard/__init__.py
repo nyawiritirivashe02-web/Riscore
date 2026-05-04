@@ -2,12 +2,20 @@ from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_migrate import Migrate
+from flask_socketio import SocketIO
 import os
 
 try:
     from flask_mail import Mail
 except ModuleNotFoundError:  # optional dependency for local dev
     Mail = None
+
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # python-dotenv not installed, use system env vars
 
 
 app = Flask(__name__)
@@ -23,6 +31,13 @@ CORS(app, resources={
         "supports_credentials": True
     }
 })
+
+# Initialize SocketIO for real-time updates
+socketio = SocketIO(app, cors_allowed_origins=[
+    "http://192.168.1.105",
+    "http://localhost:5000",
+    "http://127.0.0.1:5000"
+])
 
 app.config['SECRET_KEY'] = os.getenv("SECRET_KEY", "your-secret-key")  # Change this in production
 
@@ -68,3 +83,8 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db, render_as_batch = True)
 
 from financeGuard.api import endpoints
+from financeGuard.api import dashboard_routes
+from financeGuard.api import dashboard_views
+from financeGuard.api import bulk_actions
+# from financeGuard.api import anomaly_analytics
+# from financeGuard.api import borrower_profiles
