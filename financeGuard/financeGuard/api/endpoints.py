@@ -874,11 +874,8 @@ def lookup_mfi(first_name: str, last_name: str):
     match = MFI_DF[MFI_DF["_name_key"] == full]
     if not match.empty:
         return match.iloc[0].to_dict(), "exact"
-    match = MFI_DF[MFI_DF["_name_key"].str.endswith(last_name.lower().strip())]
-    if not match.empty:
-        return match.iloc[0].to_dict(), "partial"
+    # No fallback
     return None, None
-
 
 # --------------------------------------------------------------
 #  Alert Dispatch
