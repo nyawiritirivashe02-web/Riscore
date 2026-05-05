@@ -19,6 +19,8 @@ except ImportError:
 
 
 app = Flask(__name__)
+print("🔍 DATABASE_URL:", os.getenv("DATABASE_URL", "mysql+pymysql://root@localhost/microfinance_db"))
+print("🔍 ASYNC_DATABASE_URI:", app.config.get("ASYNC_DATABASE_URI"))
 CORS(app, resources={
     r"/*": {
         "origins": [
