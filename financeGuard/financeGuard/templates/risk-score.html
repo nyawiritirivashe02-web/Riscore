@@ -55,6 +55,45 @@
         <p class="mt-1 text-xs text-neutral-400">This data was merged with your application to produce the final score.</p>
       </div>
 
+      <!-- TWO‑STAGE BREAKDOWN -->
+      <div class="rounded-2xl border border-neutral-200 bg-white p-5 dark:border-neutral-800 dark:bg-neutral-950">
+        <h3 class="text-sm font-semibold mb-3">Decision breakdown</h3>
+        <div class="space-y-3">
+          <!-- Stage 1: Credit risk -->
+          <div class="flex items-center justify-between border-b border-neutral-100 pb-2 dark:border-neutral-800">
+            <div>
+              <span class="text-sm font-medium">Stage 1 – Credit risk</span>
+              <div class="text-xs text-neutral-500">Requires <strong>Low</strong> risk</div>
+            </div>
+            <div>
+              <span :class="stage1Passed ? 'text-emerald-600' : 'text-red-600'" class="text-sm font-semibold">
+                [[ riskLabel ]] risk
+              </span>
+              <span v-if="stage1Passed" class="ml-2 text-emerald-600">✓ Passed</span>
+              <span v-else class="ml-2 text-red-600">✗ Failed</span>
+            </div>
+          </div>
+          <!-- Stage 2: Policy checks -->
+          <div class="flex items-center justify-between">
+            <div>
+              <span class="text-sm font-medium">Stage 2 – Policy checks</span>
+              <div class="text-xs text-neutral-500">No active loans, DTI ≤ limit, etc.</div>
+            </div>
+            <div>
+              <span v-if="stage2Passed" class="text-emerald-600">✓ Passed</span>
+              <span v-else class="text-red-600">✗ Failed</span>
+            </div>
+          </div>
+          <!-- Show failed policy reasons if any -->
+          <div v-if="!stage2Passed && policyFailures.length" class="mt-2 rounded-lg bg-red-50 p-3 text-xs text-red-700 dark:bg-red-950/20 dark:text-red-300">
+            <div class="font-semibold mb-1">Failed checks:</div>
+            <ul class="list-disc list-inside space-y-0.5">
+              <li v-for="fail in policyFailures">[[ fail.title ]] – [[ fail.detail ]]</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
       <!-- Tracking Number and Decision -->
       <div v-if="trackingNumber"
         class="rounded-2xl border border-dashed border-neutral-300 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-950">
@@ -142,6 +181,11 @@
       const showCopyToast        = ref(false);
       const theme                = ref("light");
 
+      // Two‑stage fields
+      const stage1Passed = ref(false);
+      const stage2Passed = ref(false);
+      const policyFailures = ref([]);
+
       // Payslip data (still needed for potential future use, but no modal)
       const payslipName = ref("");
       const payslipSalary = ref(0);
@@ -191,6 +235,11 @@
 
           internalRiskScore.value = data.internal_risk_score ?? null;
           internalRiskLabel.value = data.internal_risk_label || "";
+
+          // Two‑stage fields
+          stage1Passed.value = data.stage1_passed ?? (data.risk_label === "Low");
+          stage2Passed.value = data.stage2_passed ?? false;
+          policyFailures.value = data.policy_failures || [];
 
           // Still load payslip data (not used in UI now, but kept for completeness)
           if (data.payslip_data) {
@@ -269,6 +318,8 @@
         payslipName, payslipSalary, payslipNationalId, payslipDepartment, payslipPosition,
         internalEmploymentSector, internalJobTitle, internalTotalPrevLoans, internalActiveLoans,
         internalOutstandingBalance, internalReturnRate, internalDaysPastDue,
+        // Two‑stage
+        stage1Passed, stage2Passed, policyFailures,
       };
     },
     delimiters: ["[[", "]]"],

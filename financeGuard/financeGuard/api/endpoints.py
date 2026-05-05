@@ -902,8 +902,11 @@ def _build_admin_alert_email_html(*, alert_type: str, severity: str, borrower_na
 <div style="font-size:12px;text-transform:uppercase;letter-spacing:1px;color:#64748b;margin-bottom:6px;">Suggested Actions</div>
 <ul style="margin:0;padding-left:18px;font-size:13px;color:#334155;"><li>Review recent applications and anomaly history.</li><li>Confirm borrower identity and outstanding obligations.</li><li>Escalate to risk operations if needed.</li></ul>
 </div>
-<table width="100%" style="border-collapse:collapse;"><tr><td style="padding:10px 0;border-top:1px solid #e2e8f0;font-size:12px;color:#64748b;">Timestamp: {ts}</td></tr></table>
-</td></tr></table>
+<table width="100%" style="border-collapse:collapse;">
+<tr><td style="padding:10px 0;border-top:1px solid #e2e8f0;font-size:12px;color:#64748b;">Timestamp: {ts}</td></tr>
+</table>
+</td></tr>
+</table>
 <div style="margin-top:14px;font-size:11px;color:#94a3b8;">This message was generated automatically by FinanceGuard.</div>
 </td></tr></table></body></html>"""
 
@@ -969,7 +972,13 @@ async def seed_data():
             score, label, probs = await score_borrower_async(sal, sec, rea, tr, al, ob, am, rr, dp, ms, loan_req)
             anomaly_eval = evaluate_application_anomalies(salary=sal, total_loans=tr, active_loans=al, outstanding=ob, return_rate=rr, days_due=dp, is_existing_borrower=False, recent_application_count=1, loan_amount=loan_req)
             anomaly_codes = ", ".join(a["code"] for a in anomaly_eval["anomalies"]) if anomaly_eval["anomalies"] else "none"
-            status, reason = decide_application(score=score, label=label, anomaly_score=anomaly_eval["anomaly_score"], anomaly_codes=anomaly_codes)
+            # ----- TWO-STAGE DECISION FOR SEEDING -----
+            if label == "Low" and len(anomaly_eval["anomalies"]) == 0:
+                status = "approved"
+                reason = f"Approved – Low risk and no policy violations."
+            else:
+                status = "rejected"
+                reason = f"Rejected – risk={label}, policy violations={len(anomaly_eval['anomalies'])}."
             bid = f"S{i+1:03d}"
             tracking_number = str(uuid.uuid4()) if status != "rejected" else None
             session.add(Borrower(id=bid, full_name=row["Full Name"], first_name=first, last_name=last, salary=sal, employment_sector=sec, job_title=row["Job Title"], total_prev_loans=tr, active_loans=al, outstanding_balance=ob, avg_loan_amount=am, common_loan_reason=rea, return_rate=rr, days_past_due=dp, mfi_diversity_score=ms, risk_score=score, risk_label=label, risk_probability_high=probs.get("High", 0), risk_probability_medium=probs.get("Medium", 0), risk_probability_low=probs.get("Low", 0), loan_amount=loan_req, data_source="mfi_exact", created_at=now))
@@ -2096,7 +2105,31 @@ async def assess():
             area_feedback = _build_area_feedback(anomalies=anomaly_eval["anomalies"], context=area_context, label=label, score=score)
             anomaly_codes = ", ".join(a["code"] for a in anomaly_eval["anomalies"]) if anomaly_eval["anomalies"] else "none"
             request_to_salary = loan_amount / max(salary, 1.0)
-            decision_status, decision_reason = decide_application(score=score, label=label, anomaly_score=anomaly_eval["anomaly_score"], anomaly_codes=anomaly_codes, request_to_salary=request_to_salary)
+            
+            # ----- TWO-STAGE DECISION -----
+            # Hard cap: never allow > 4x monthly salary
+            if request_to_salary > 4.0:
+                decision_status = "rejected"
+                decision_reason = f"Rejected: requested amount is {request_to_salary:.1f}x your monthly salary. Maximum allowed is 4x."
+            else:
+                # Stage 1: credit risk (must be "Low")
+                stage1_passed = (label == "Low")
+                # Stage 2: policy checks – all areas in area_feedback["failed"] must be empty
+                policy_failed_items = area_feedback.get("failed", [])
+                stage2_passed = len(policy_failed_items) == 0
+
+                if stage1_passed and stage2_passed:
+                    decision_status = "approved"
+                    decision_reason = f"Approved – Low credit risk and all policy checks passed."
+                else:
+                    decision_status = "rejected"
+                    # Build a combined rejection reason using your existing combine_explanations
+                    # (which already handles policy failures + risk label)
+                    if not stage1_passed:
+                        decision_reason = f"Rejected: credit risk is {label} (requires Low)."
+                    else:
+                        decision_reason = "Rejected: one or more policy checks failed (see details below)."
+            
             # ── XAI explanation (runs in thread pool to avoid blocking) ──────────────
             feature_df = _build_features(salary, sec, loan_reason, tr, al, ob, am, rr, dp, ms, loan_amount)
             feature_array = feature_df.iloc[0].values
@@ -2263,5 +2296,9 @@ async def assess():
             "days_past_due": dp,
             "loan_reason": loan_reason,
             "requested_amount": loan_amount
-        }
+        },
+        # ----- TWO-STAGE FIELDS -----
+        "stage1_passed": (label == "Low"),
+        "stage2_passed": len(area_feedback.get("failed", [])) == 0,
+        "policy_failures": area_feedback.get("failed", []),
     })
