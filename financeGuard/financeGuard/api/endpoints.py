@@ -615,8 +615,12 @@ def evaluate_application_anomalies(
 
     request_to_salary = float(loan_amount) / max(float(salary), 1.0)
     if request_to_salary >= 2.5:
-        add("HIGH_REQUESTED_AMOUNT", f"Requested loan is {request_to_salary:.1f}x monthly salary.", 15.0)
-
+        # Scale anomaly score: 15 points at 2.5x, up to 60 points at 10x or more
+        penalty = min(60.0, 15.0 + (request_to_salary - 2.5) * 6.0)
+        add("HIGH_REQUESTED_AMOUNT",
+            f"Requested loan is {request_to_salary:.1f}x monthly salary (max allowed is 2.5x).",
+            penalty)
+        
     anomaly_score = round(min(100.0, sum(item["score"] for item in anomalies)), 1)
     return {
         "is_anomaly": len(anomalies) > 0,
@@ -657,7 +661,20 @@ def _boost_rejected_anomaly_risk_score(*, score: float, anomaly_score: float, de
     threshold = max(float(AUTO_DECISION_REJECTION_THRESHOLD), 1.0)
     scaled = min(span, round((max(float(anomaly_score), 0.0) / threshold) * span, 1))
     return round(min(ANOMALY_REJECTION_FRONTEND_SCORE_MAX, ANOMALY_REJECTION_FRONTEND_SCORE_MIN + scaled), 1)
-
+def _apply_loan_amount_penalty(score: float, loan_amount: float, salary: float) -> float:
+    """
+    Increases the risk score when the requested loan amount is high relative to salary.
+    Ensures that a larger loan always results in a higher (riskier) score.
+    """
+    if salary <= 0:
+        return score
+    ratio = loan_amount / salary
+    if ratio <= 1.0:
+        return score
+    # Penalty: (ratio - 1) * 5 percentage points, max 40 points
+    penalty = min(40.0, (ratio - 1.0) * 5.0)
+    new_score = min(100.0, score + penalty)
+    return new_score
 
 def _format_currency(value: float) -> str:
     try:
@@ -815,7 +832,11 @@ def _validate_payout_details(channel: str, details: dict) -> dict:
     return {"channel": payload_channel, "channel_label": DEPOSIT_CHANNELS[payload_channel]["label"], **payload_details}
 
 
-def decide_application(*, score: float, label: str, anomaly_score: float, anomaly_codes: str) -> tuple[str, str]:
+def decide_application(*, score: float, label: str, anomaly_score: float, anomaly_codes: str, request_to_salary: float = 0.0) -> tuple[str, str]:
+    # Hard cap: never allow > 4x monthly salary
+    if request_to_salary > 4.0:
+        return ("rejected", f"Rejected: requested amount is {request_to_salary:.1f}x your monthly salary. Maximum allowed is 4x.")
+    
     safe_label = (label or "").title()
     codes = [c.strip() for c in (anomaly_codes or "").split(",") if c.strip() and c.strip() != "none"]
     if safe_label == "High":
@@ -823,7 +844,6 @@ def decide_application(*, score: float, label: str, anomaly_score: float, anomal
     if float(anomaly_score) >= AUTO_DECISION_REJECTION_THRESHOLD:
         return ("rejected", _format_rejection_reason(score=score, label=label, anomaly_codes=codes))
     return ("approved", f"Approved automatically based on {safe_label.lower() or 'low'} risk score {score:.1f}.")
-
 
 def _format_area_entries(entries: list[dict[str, str]]) -> str:
     if not entries:
@@ -1159,11 +1179,15 @@ def _merge_external_data(
     *,
     al: float, ob: float, rr: float, dp: float,
     tr: float, recent_assessment_count: int, unsettled_loan_count: int,
-    external: dict,
+    external: dict | None,
 ) -> tuple[float, float, float, float, float, int, int]:
     """
     Merge internal FinanceGuard borrower metrics with external credit bureau data.
+    If external is None (no bureau record), return original values unchanged.
     """
+    if external is None:
+        return al, ob, rr, dp, tr, recent_assessment_count, unsettled_loan_count
+
     ext_al       = float(external.get("active_loans_elsewhere", 0))
     ext_ob       = float(external.get("outstanding_elsewhere", 0))
     ext_rr       = float(external.get("repayment_rate_elsewhere", 100))
@@ -1186,8 +1210,7 @@ def _merge_external_data(
     merged_recent     = recent_assessment_count                # internal only
     merged_unsettled  = unsettled_loan_count + ext_unsettled   # total unresolved
 
-    return merged_al, merged_ob, merged_rr, merged_dp, merged_tr, merged_recent, merged_unsettled
-# --------------------------------------------------------------
+    return merged_al, merged_ob, merged_rr, merged_dp, merged_tr, merged_recent, merged_unsettled# --------------------------------------------------------------
 #  Flask Routes
 # --------------------------------------------------------------
 @app.route("/static/js/pdf.min.mjs")
@@ -1977,16 +2000,23 @@ async def assess():
     # ── Compute internal‑only risk score (before merging external data) ──
     internal_score, internal_label, internal_probs = await score_borrower_async(
         salary, sec, loan_reason,
-        db_total_loans,           # total previous loans (local)
-        db_active_loans,          # active loans (local)
-        db_outstanding_balance,   # outstanding balance (local)
-        am,                       # avg loan amount (local)
-        rr,                       # return rate (local)
-        dp,                       # days past due (local)
-        ms,                       # mfi diversity score (local)
-        loan_amount               # requested loan amount
+        db_total_loans,
+        db_active_loans,
+        db_outstanding_balance,
+        am,
+        rr,
+        dp,
+        ms,
+        loan_amount
     )
-    # Store the internal scores for later use in the JSON response
+    # Apply same penalty to internal score for consistency
+    internal_score = _apply_loan_amount_penalty(internal_score, loan_amount, salary)
+    if internal_score >= 70:
+        internal_label = "High"
+    elif internal_score >= 40:
+        internal_label = "Medium"
+    else:
+        internal_label = "Low"    # Store the internal scores for later use in the JSON response
     internal_risk_score = internal_score
     internal_risk_label = internal_label
     # ── Credit bureau lookup & merge ─────────────────────────────────────────
@@ -2013,8 +2043,18 @@ async def assess():
         log.info(f"Credit bureau merge for {national_id}: al={al}, ob={ob}, rr={rr:.1f}, dp={dp}")
 
     score, label, probs = await score_borrower_async(salary, sec, loan_reason, tr, al, ob, am, rr, dp, ms, loan_amount)
+    
+    # Apply loan amount penalty so risk increases with requested amount
+    score = _apply_loan_amount_penalty(score, loan_amount, salary)
+    # Re‑determine label based on penalised score
+    if score >= 70:
+        label = "High"
+    elif score >= 40:
+        label = "Medium"
+    else:
+        label = "Low"
+    
     area_feedback: dict[str, list[dict[str, str]]] = {"failed": [], "passed": []}
-
     # ── Internal-only anomaly score (pre-merge, for comparison display) ──────
     internal_anomaly_eval = evaluate_application_anomalies(
         salary=salary, total_loans=db_total_loans, active_loans=internal_al,
@@ -2057,8 +2097,8 @@ async def assess():
             }
             area_feedback = _build_area_feedback(anomalies=anomaly_eval["anomalies"], context=area_context, label=label, score=score)
             anomaly_codes = ", ".join(a["code"] for a in anomaly_eval["anomalies"]) if anomaly_eval["anomalies"] else "none"
-            decision_status, decision_reason = decide_application(score=score, label=label, anomaly_score=anomaly_eval["anomaly_score"], anomaly_codes=anomaly_codes)
-
+            request_to_salary = loan_amount / max(salary, 1.0)
+            decision_status, decision_reason = decide_application(score=score, label=label, anomaly_score=anomaly_eval["anomaly_score"], anomaly_codes=anomaly_codes, request_to_salary=request_to_salary)
             # ── XAI explanation (runs in thread pool to avoid blocking) ──────────────
             feature_df = _build_features(salary, sec, loan_reason, tr, al, ob, am, rr, dp, ms, loan_amount)
             feature_array = feature_df.iloc[0].values
@@ -2097,9 +2137,22 @@ async def assess():
             
             # Store DISPLAY score in database
             if existing_borrower_id:
+                # Increment loan counts only if this application is approved
+                if decision_status == "approved":
+                    new_total_loans = db_total_loans + 1
+                    new_active_loans = db_active_loans + 1
+                    new_outstanding_balance = db_outstanding_balance + loan_amount
+                else:
+                    new_total_loans = db_total_loans
+                    new_active_loans = db_active_loans
+                    new_outstanding_balance = db_outstanding_balance
+
                 await session.execute(update(Borrower).where(Borrower.id == existing_borrower_id).values(
-                    salary=salary, employment_sector=sec, job_title=job, total_prev_loans=db_total_loans,
-                    active_loans=db_active_loans, outstanding_balance=db_outstanding_balance, avg_loan_amount=am,
+                    salary=salary, employment_sector=sec, job_title=job,
+                    total_prev_loans=new_total_loans,
+                    active_loans=new_active_loans,
+                    outstanding_balance=new_outstanding_balance,
+                    avg_loan_amount=am,
                     common_loan_reason=loan_reason, return_rate=rr, days_past_due=dp, mfi_diversity_score=ms,
                     risk_score=display_score, risk_label=display_label,
                     risk_probability_high=probs.get("High", 0), risk_probability_medium=probs.get("Medium", 0),
@@ -2146,8 +2199,7 @@ async def assess():
                 new_user_message = f"{full_name} is a new borrower profile. No prior loan history was found, so the application was logged as a notification only."
                 await create_alert(session, bid, full_name, "NEW_USER_NOTIFICATION", new_user_message, "INFO", "Dashboard")
             
-            await session.commit()
-        # end of async with
+            await session.commit()        # end of async with
 
     except Exception as exc:
         log.exception("assess() DB error")
