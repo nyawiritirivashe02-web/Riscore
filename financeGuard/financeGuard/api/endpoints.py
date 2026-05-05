@@ -693,9 +693,10 @@ def _calc_request_ratio(context: dict[str, float]) -> float:
 
 def _pass_detail_active_debt(context: dict[str, float]) -> str:
     loans = int(context.get("active_loans", 0))
+    if loans == 0:
+        return "Active loans: 0 (no outstanding debt)"
     outstanding = _format_currency(float(context.get("outstanding", 0.0)))
     return f"Active loans: {loans}; outstanding balance {outstanding}"
-
 
 def _pass_detail_frequency(context: dict[str, float]) -> str:
     count = int(context.get("recent_application_count", 0))
