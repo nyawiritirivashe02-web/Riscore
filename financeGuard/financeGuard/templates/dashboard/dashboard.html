@@ -129,18 +129,137 @@
           </div>
         </div>
         <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"><div class="flex items-start justify-between"><div><div class="text-xs uppercase tracking-widest text-neutral-500 mb-3">Total Borrowers</div><div class="text-3xl font-semibold">[[ stats.total_borrowers ?? '--' ]]</div></div><div class="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 dark:bg-blue-500/10 dark:border-blue-500/20 flex items-center justify-center"><svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg></div></div><div class="mt-3 text-xs text-neutral-400">All active accounts</div></div>
-          <div class="rounded-2xl border border-red-100 bg-white p-5 shadow-sm dark:border-red-500/20 dark:bg-neutral-900"><div class="flex items-start justify-between"><div><div class="text-xs uppercase tracking-widest text-neutral-500 mb-3">High Risk</div><div class="text-3xl font-semibold text-red-500">[[ stats.high ?? '--' ]]</div></div><div class="w-9 h-9 rounded-lg bg-red-50 border border-red-100 dark:bg-red-500/10 dark:border-red-500/20 flex items-center justify-center"><svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div></div><div class="mt-3 text-xs text-neutral-400">Requires review</div></div>
-          <div class="rounded-2xl border border-amber-100 bg-white p-5 shadow-sm dark:border-amber-500/20 dark:bg-neutral-900"><div class="flex items-start justify-between"><div><div class="text-xs uppercase tracking-widest text-neutral-500 mb-3">Unread Alerts</div><div class="text-3xl font-semibold text-amber-500">[[ stats.unread_alerts ?? '--' ]]</div></div><div class="w-9 h-9 rounded-lg bg-amber-50 border border-amber-100 dark:bg-amber-500/10 dark:border-amber-500/20 flex items-center justify-center"><svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg></div></div><div class="mt-3 text-xs text-neutral-400">Needs attention</div></div>
-          <div class="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm dark:border-emerald-500/20 dark:bg-neutral-900"><div class="flex items-start justify-between"><div><div class="text-xs uppercase tracking-widest text-neutral-500 mb-3">Avg Risk Score</div><div class="text-3xl font-semibold text-emerald-600 dark:text-emerald-400">[[ stats.avg_risk_score ?? '--' ]]</div></div><div class="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-100 dark:bg-emerald-500/10 dark:border-emerald-500/20 flex items-center justify-center"><svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div></div><div class="mt-3 text-xs text-neutral-400">Portfolio average</div></div>
+          <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+            <div class="flex items-start justify-between">
+              <div><div class="text-xs uppercase tracking-widest text-neutral-500 mb-3">Total Borrowers</div><div class="text-3xl font-semibold">[[ stats.total_borrowers ?? '--' ]]</div></div>
+              <div class="w-9 h-9 rounded-lg bg-blue-50 border border-blue-100 dark:bg-blue-500/10 dark:border-blue-500/20 flex items-center justify-center"><svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0"/></svg></div>
+            </div>
+            <div class="mt-3 text-xs text-neutral-400">All active accounts</div>
+          </div>
+          <div class="rounded-2xl border border-red-100 bg-white p-5 shadow-sm dark:border-red-500/20 dark:bg-neutral-900">
+            <div class="flex items-start justify-between">
+              <div><div class="text-xs uppercase tracking-widest text-neutral-500 mb-3">High Risk</div><div class="text-3xl font-semibold text-red-500">[[ stats.high ?? '--' ]]</div></div>
+              <div class="w-9 h-9 rounded-lg bg-red-50 border border-red-100 dark:bg-red-500/10 dark:border-red-500/20 flex items-center justify-center"><svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg></div>
+            </div>
+            <div class="mt-3 text-xs text-neutral-400">Requires review</div>
+          </div>
+          <div class="rounded-2xl border border-amber-100 bg-white p-5 shadow-sm dark:border-amber-500/20 dark:bg-neutral-900">
+            <div class="flex items-start justify-between">
+              <div><div class="text-xs uppercase tracking-widest text-neutral-500 mb-3">Unread Alerts</div><div class="text-3xl font-semibold text-amber-500">[[ stats.unread_alerts ?? '--' ]]</div></div>
+              <div class="w-9 h-9 rounded-lg bg-amber-50 border border-amber-100 dark:bg-amber-500/10 dark:border-amber-500/20 flex items-center justify-center"><svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg></div>
+            </div>
+            <div class="mt-3 text-xs text-neutral-400">Needs attention</div>
+          </div>
+          <div class="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm dark:border-emerald-500/20 dark:bg-neutral-900">
+            <div class="flex items-start justify-between">
+              <div><div class="text-xs uppercase tracking-widest text-neutral-500 mb-3">Avg Risk Score</div><div class="text-3xl font-semibold text-emerald-600 dark:text-emerald-400">[[ stats.avg_risk_score ?? '--' ]]</div></div>
+              <div class="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-100 dark:bg-emerald-500/10 dark:border-emerald-500/20 flex items-center justify-center"><svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
+            </div>
+            <div class="mt-3 text-xs text-neutral-400">Portfolio average</div>
+          </div>
+        </div>
+
+        <!-- Quick Actions bar -->
+        <div class="flex flex-wrap gap-3">
+          <button @click="activeTab='borrowerSearch'" class="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-xs font-semibold text-neutral-700 shadow-sm hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-blue-500/10 dark:hover:text-blue-400 transition-all">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>Search Borrower
+          </button>
+          <button @click="activeTab='anomalies'" class="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-xs font-semibold text-neutral-700 shadow-sm hover:bg-red-50 hover:border-red-200 hover:text-red-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-red-500/10 dark:hover:text-red-400 transition-all">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>View Anomalies
+          </button>
+          <button @click="activeTab='applications'" class="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-xs font-semibold text-neutral-700 shadow-sm hover:bg-amber-50 hover:border-amber-200 hover:text-amber-700 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-amber-500/10 dark:hover:text-amber-400 transition-all">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Applications
+          </button>
+          <button @click="activeTab='blacklist'" class="flex items-center gap-2 rounded-xl border border-neutral-200 bg-white px-4 py-2.5 text-xs font-semibold text-neutral-700 shadow-sm hover:bg-neutral-100 hover:border-neutral-300 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 transition-all">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>Blacklist
+          </button>
+          <button @click="refreshDashboard" :disabled="isRefreshing" class="ml-auto flex items-center gap-1.5 rounded-xl border border-neutral-200 bg-white px-3 py-2.5 text-xs font-semibold text-neutral-700 shadow-sm hover:bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 transition disabled:opacity-40">
+            <svg class="w-3.5 h-3.5" :class="isRefreshing ? 'animate-spin' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v6h6M20 20v-6h-6M5 19a9 9 0 0014-7 9 9 0 00-9-9"/></svg>Refresh
+          </button>
         </div>
         <div class="grid gap-6 lg:grid-cols-2">
           <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"><div class="flex items-center justify-between mb-5"><div><h2 class="text-sm font-semibold">Portfolio Risk Trend</h2><p class="text-xs text-neutral-500 mt-0.5">14-day rolling average</p></div><span class="badge px-2 py-1 rounded-md bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">LIVE</span></div><div class="h-56"><canvas id="riskTrendChart"></canvas></div></div>
           <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"><div class="flex items-center justify-between mb-5"><div><h2 class="text-sm font-semibold">Risk Distribution</h2><p class="text-xs text-neutral-500 mt-0.5">Current portfolio breakdown</p></div><span class="badge px-2 py-1 rounded-md bg-neutral-100 text-neutral-500 dark:bg-neutral-800 dark:text-neutral-400">[[ riskFilter === 'all' ? 'NOW' : 'FILTERED' ]]</span></div><div class="h-56"><canvas id="riskDistChart"></canvas></div></div>
         </div>
+
+        <!-- Recent Anomalies feed + Risk Breakdown row -->
+        <div class="grid gap-6 lg:grid-cols-3">
+          <!-- Recent Anomalies mini-feed -->
+          <div class="lg:col-span-2 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+            <div class="flex items-center justify-between mb-4">
+              <div><h2 class="text-sm font-semibold">Recent Anomalies</h2><p class="text-xs text-neutral-500 mt-0.5">Latest detections across portfolio</p></div>
+              <button @click="activeTab='anomalies'" class="text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium">View all →</button>
+            </div>
+            <div v-if="!anomaliesList.length && !anomaliesLoading" class="py-8 text-center">
+              <div class="w-10 h-10 rounded-full bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center mx-auto mb-2">
+                <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              </div>
+              <p class="text-xs text-neutral-500">No recent anomalies detected</p>
+            </div>
+            <div v-else class="space-y-2">
+              <div v-for="alert in anomaliesList.slice(0,5)" :key="alert.id"
+                @click="openAnomalyDetail(alert)"
+                class="flex items-start gap-3 p-3 rounded-xl cursor-pointer hover:bg-neutral-50 dark:hover:bg-neutral-800/60 transition-colors border border-neutral-100 dark:border-neutral-800">
+                <div class="w-8 h-8 flex-shrink-0 rounded-lg flex items-center justify-center"
+                  :class="alert.severity === 'CRITICAL' ? 'bg-red-100 text-red-500 dark:bg-red-500/10' : 'bg-amber-100 text-amber-500 dark:bg-amber-500/10'">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="text-xs font-semibold text-neutral-800 dark:text-neutral-100 truncate">[[ alert.borrower_name ]]</span>
+                    <span class="badge px-2 py-0.5 rounded-full text-[10px] flex-shrink-0" :class="alert.severity === 'CRITICAL' ? 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400' : 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'">[[ alert.severity ]]</span>
+                  </div>
+                  <div class="flex flex-wrap gap-1 mt-1">
+                    <span v-for="code in parseAnomalyCodes(alert.message).slice(0,3)" :key="code" class="inline-block px-1.5 py-0.5 rounded bg-red-50 text-red-500 dark:bg-red-500/10 dark:text-red-400 font-mono text-[9px] border border-red-100 dark:border-red-500/20">[[ code ]]</span>
+                  </div>
+                  <p class="mono text-[10px] text-neutral-400 mt-1">[[ alert.timestamp?.slice(0,16)?.replace('T',' ') ]]</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Portfolio health summary -->
+          <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+            <div class="mb-4"><h2 class="text-sm font-semibold">Portfolio Health</h2><p class="text-xs text-neutral-500 mt-0.5">Borrower risk breakdown</p></div>
+            <div class="space-y-4">
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <span class="flex items-center gap-1.5 font-medium text-neutral-700 dark:text-neutral-200"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>Low Risk</span>
+                  <span class="font-semibold text-emerald-600 dark:text-emerald-400">[[ stats.low ?? 0 ]]</span>
+                </div>
+                <div class="h-2 rounded-full bg-neutral-100 dark:bg-neutral-800">
+                  <div class="h-2 rounded-full bg-emerald-500 transition-all" :style="{width: stats.total_borrowers ? Math.round((stats.low||0)/stats.total_borrowers*100)+'%' : '0%'}"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <span class="flex items-center gap-1.5 font-medium text-neutral-700 dark:text-neutral-200"><span class="w-2 h-2 rounded-full bg-amber-500 inline-block"></span>Medium Risk</span>
+                  <span class="font-semibold text-amber-600 dark:text-amber-400">[[ stats.medium ?? 0 ]]</span>
+                </div>
+                <div class="h-2 rounded-full bg-neutral-100 dark:bg-neutral-800">
+                  <div class="h-2 rounded-full bg-amber-500 transition-all" :style="{width: stats.total_borrowers ? Math.round((stats.medium||0)/stats.total_borrowers*100)+'%' : '0%'}"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs mb-1.5">
+                  <span class="flex items-center gap-1.5 font-medium text-neutral-700 dark:text-neutral-200"><span class="w-2 h-2 rounded-full bg-red-500 inline-block"></span>High Risk</span>
+                  <span class="font-semibold text-red-600 dark:text-red-400">[[ stats.high ?? 0 ]]</span>
+                </div>
+                <div class="h-2 rounded-full bg-neutral-100 dark:bg-neutral-800">
+                  <div class="h-2 rounded-full bg-red-500 transition-all" :style="{width: stats.total_borrowers ? Math.round((stats.high||0)/stats.total_borrowers*100)+'%' : '0%'}"></div>
+                </div>
+              </div>
+              <div class="pt-3 border-t border-neutral-100 dark:border-neutral-800 space-y-2">
+                <div class="flex justify-between text-xs"><span class="text-neutral-500">Blacklisted</span><span class="font-semibold text-neutral-700 dark:text-neutral-200">[[ blacklist.length ]]</span></div>
+                <div class="flex justify-between text-xs"><span class="text-neutral-500">Pending alerts</span><span class="font-semibold text-amber-600 dark:text-amber-400">[[ stats.unread_alerts ?? 0 ]]</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </section>
 
-      <!-- APPLICATIONS TAB (simplified – keep your existing table; here we show a minimal version) -->
+      <!-- APPLICATIONS TAB -->
       <section v-if="activeTab === 'applications'" class="fade-up space-y-4">
         <div class="flex items-center justify-between"><div><h2 class="text-sm font-semibold">Loan Applications</h2><p class="text-xs text-neutral-500 mono">Page [[ appPage ]]</p></div><div class="flex items-center gap-3"><p v-if="applicationFeedback" class="text-xs text-emerald-600 dark:text-emerald-400 mono">[[ applicationFeedback ]]</p><div class="flex items-center gap-2"><button class="flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold disabled:opacity-40" :disabled="appPage === 1 || appLoading" @click="prevApplications">Previous</button><button class="flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold disabled:opacity-40" :disabled="!appHasMore || appLoading" @click="nextApplications">Next</button></div></div></div>
         <div class="rounded-2xl border bg-white shadow-sm overflow-hidden dark:border-neutral-800 dark:bg-neutral-900"><div v-if="appLoading" class="p-12 text-center text-sm">Loading...</div><div v-else-if="!applications.length" class="p-12 text-center text-sm">No applications found.</div><div v-else class="overflow-x-auto"><table class="w-full text-left text-sm"><thead><tr class="border-b bg-neutral-50/80 dark:border-neutral-800 dark:bg-neutral-800/50"><th class="px-5 py-3 text-[10px] uppercase">Tracking #</th><th class="px-5 py-3">Client</th><th class="px-5 py-3">Amount</th><th class="px-5 py-3">Risk</th><th class="px-5 py-3">Status</th><th class="px-5 py-3">Decision</th><th class="px-5 py-3">Date</th></tr></thead><tbody><tr v-for="app in applications" :key="app.tracking_number" class="row-hover border-b dark:border-neutral-800/60"><td class="px-5 py-3.5"><span class="mono text-xs bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 rounded">[[ app.tracking_number ]]</span></td><td class="px-5 py-3.5 font-medium">[[ app.borrower_name ]]</td><td class="px-5 py-3.5 mono">$[[ app.amount.toLocaleString() ]]</td><td class="px-5 py-3.5"><span class="badge px-2 py-1 rounded-full" :class="app.risk_label === 'High' ? 'bg-red-100 text-red-600' : app.risk_label === 'Medium' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-700'">[[ app.risk_label?.toUpperCase() ]]</span></td><td class="px-5 py-3.5"><span class="badge px-2 py-1 rounded-full" :class="app.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : app.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-neutral-100 text-neutral-600'">[[ app.status?.toUpperCase() ]]</span></td><td class="px-5 py-3.5 text-xs"><span v-if="app.status === 'rejected'" class="mono text-red-600">[[ app.decision_reason || 'Rejected automatically' ]]</span><span v-else class="text-neutral-500">[[ app.decision_reason || 'Auto-approved' ]]</span></td><td class="px-5 py-3.5 mono text-xs">[[ app.timestamp ]]</td></tr></tbody></table></div></div>
@@ -158,9 +277,9 @@
               <option value="MEDIUM">MEDIUM</option>
               <option value="LOW">LOW</option>
             </select>
-            <input v-model="anomalyFilters.borrower_name" placeholder="Borrower name" class="rounded-xl border px-3 py-1.5 text-xs dark:border-neutral-700 dark:bg-neutral-800" />
-            <input type="date" v-model="anomalyFilters.start_date" class="rounded-xl border px-3 py-1.5 text-xs dark:border-neutral-700 dark:bg-neutral-800" />
-            <input type="date" v-model="anomalyFilters.end_date" class="rounded-xl border px-3 py-1.5 text-xs dark:border-neutral-700 dark:bg-neutral-800" />
+            <input v-model="anomalyFilters.borrower_name" placeholder="Borrower name" class="rounded-xl border px-3 py-1.5 text-xs dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:placeholder-neutral-500" />
+            <input type="date" v-model="anomalyFilters.start_date" class="rounded-xl border px-3 py-1.5 text-xs dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200" />
+            <input type="date" v-model="anomalyFilters.end_date" class="rounded-xl border px-3 py-1.5 text-xs dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200" />
             <button @click="loadAnomalies(1)" class="rounded-xl bg-neutral-900 px-3 py-1.5 text-xs text-white dark:bg-white dark:text-neutral-900">Search</button>
           </div>
         </div>
@@ -168,19 +287,19 @@
         <div v-else-if="!anomaliesList.length" class="rounded-2xl border p-12 text-sm text-center dark:border-neutral-800">No anomalies found.</div>
         <div v-else class="rounded-2xl border bg-white dark:border-neutral-800 dark:bg-neutral-900 overflow-x-auto">
           <table class="w-full text-left text-sm">
-            <thead><tr class="border-b bg-neutral-50 dark:border-neutral-800">
-              <th class="px-4 py-3 text-[10px] uppercase">Timestamp</th>
-              <th class="px-4 py-3">Borrower</th>
-              <th class="px-4 py-3">Anomaly Codes</th>
-              <th class="px-4 py-3">Severity</th>
-              <th class="px-4 py-3">Score</th>
+            <thead><tr class="border-b bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-800/50">
+              <th class="px-4 py-3 text-[10px] uppercase text-neutral-500 dark:text-neutral-400">Timestamp</th>
+              <th class="px-4 py-3 text-[10px] uppercase text-neutral-500 dark:text-neutral-400">Borrower</th>
+              <th class="px-4 py-3 text-[10px] uppercase text-neutral-500 dark:text-neutral-400">Anomaly Codes</th>
+              <th class="px-4 py-3 text-[10px] uppercase text-neutral-500 dark:text-neutral-400">Severity</th>
+              <th class="px-4 py-3 text-[10px] uppercase text-neutral-500 dark:text-neutral-400">Score</th>
             </tr></thead>
             <tbody>
               <tr v-for="alert in anomaliesList" :key="alert.id"
                   @click="openAnomalyDetail(alert)"
                   class="border-b dark:border-neutral-800/60 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-500/5 transition-colors">
-                <td class="px-4 py-3 mono text-xs text-neutral-500">[[ alert.timestamp ]]</td>
-                <td class="px-4 py-3 font-medium">[[ alert.borrower_name ]]</td>
+                <td class="px-4 py-3 mono text-xs text-neutral-500 dark:text-neutral-400">[[ alert.timestamp ]]</td>
+                <td class="px-4 py-3 font-medium text-neutral-800 dark:text-neutral-100">[[ alert.borrower_name ]]</td>
                 <td class="px-4 py-3 text-xs">
                   <div class="flex flex-wrap gap-1">
                     <template v-for="code in parseAnomalyCodes(alert.message)" :key="code">
@@ -189,9 +308,9 @@
                   </div>
                 </td>
                 <td class="px-4 py-3">
-                  <span class="badge px-2 py-0.5 rounded-full text-[10px]" :class="{'bg-red-100 text-red-600': alert.severity === 'CRITICAL', 'bg-amber-100 text-amber-600': alert.severity === 'HIGH', 'bg-yellow-50 text-yellow-600': alert.severity === 'MEDIUM', 'bg-blue-50 text-blue-600': alert.severity === 'LOW'}">[[ alert.severity ]]</span>
+                  <span class="badge px-2 py-0.5 rounded-full text-[10px]" :class="{'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400': alert.severity === 'CRITICAL', 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400': alert.severity === 'HIGH', 'bg-yellow-50 text-yellow-600 dark:bg-yellow-500/10 dark:text-yellow-400': alert.severity === 'MEDIUM', 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400': alert.severity === 'LOW'}">[[ alert.severity ]]</span>
                 </td>
-                <td class="px-4 py-3 mono text-xs">[[ parseAnomalyScore(alert.message) ]]</td>
+                <td class="px-4 py-3 mono text-xs text-neutral-700 dark:text-neutral-200 font-semibold">[[ parseAnomalyScore(alert.message) ]]</td>
               </tr>
             </tbody>
           </table>
@@ -255,107 +374,157 @@
 
       <!-- BORROWER SEARCH TAB -->
       <section v-if="activeTab === 'borrowerSearch'" class="fade-up space-y-4">
-        <div class="flex gap-2"><input v-model="searchQuery" @keyup.enter="searchBorrowers" placeholder="Search by name or borrower ID..." class="flex-1 rounded-xl border px-4 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900" /><button @click="searchBorrowers" class="rounded-xl bg-neutral-900 px-4 py-2 text-sm text-white dark:bg-white dark:text-neutral-900">Search</button></div>
-        <div v-if="searchResults.length" class="grid gap-2"><div v-for="b in searchResults" :key="b.id" class="rounded-xl border p-3 dark:border-neutral-800 flex justify-between items-center"><div><div class="font-semibold">[[ b.full_name ]]</div><div class="text-xs text-neutral-500">ID: [[ b.id ]] | Risk: [[ b.risk_label ]] ([[ b.risk_score ]])</div></div><button @click="viewBorrowerProfile(b.id)" class="rounded-lg bg-blue-50 px-3 py-1 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">View Profile</button></div></div>
+        <div class="flex gap-2"><input v-model="searchQuery" @keyup.enter="searchBorrowers" placeholder="Search by name or borrower ID..." class="flex-1 rounded-xl border px-4 py-2 text-sm dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-100 dark:placeholder-neutral-500" /><button @click="searchBorrowers" class="rounded-xl bg-neutral-900 px-4 py-2 text-sm text-white dark:bg-white dark:text-neutral-900">Search</button></div>
+        <div v-if="searchResults.length" class="grid gap-2"><div v-for="b in searchResults" :key="b.id" class="rounded-xl border p-3 dark:border-neutral-800 dark:bg-neutral-900 flex justify-between items-center"><div><div class="font-semibold text-neutral-800 dark:text-neutral-100">[[ b.full_name ]]</div><div class="text-xs text-neutral-500 dark:text-neutral-400">ID: [[ b.id ]] | Risk: [[ b.risk_label ]] ([[ b.risk_score ]])</div></div><button @click="viewBorrowerProfile(b.id)" class="rounded-lg bg-blue-50 px-3 py-1 text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition">View Profile</button></div></div>
         <div v-else-if="searchPerformed && !searchResults.length" class="text-center text-sm text-neutral-500 py-8">No borrowers found.</div>
 
-        <!-- Profile Modal -->
-        <div v-if="showProfileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-          <div class="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900">
-            <div class="flex justify-between items-center mb-4">
-              <h2 class="text-xl font-semibold">Borrower Profile</h2>
-              <button @click="showProfileModal=false" class="text-2xl">&times;</button>
-            </div>
-            <div v-if="profileLoading" class="text-center py-8">Loading...</div>
-            <div v-else>
-              <!-- Basic Info Grid -->
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-neutral-50 rounded-xl dark:bg-neutral-800 mb-4">
-                <div><span class="text-xs text-neutral-500">Full name</span><div class="font-medium text-sm">[[ profile.borrower?.full_name ]]</div></div>
-                <div><span class="text-xs text-neutral-500">ID</span><div class="font-mono text-sm">[[ profile.borrower?.id ]]</div></div>
-                <div><span class="text-xs text-neutral-500">Salary</span><div class="text-sm">$[[ profile.borrower?.salary?.toLocaleString() ]]</div></div>
-                <div><span class="text-xs text-neutral-500">Risk score</span><div class="font-semibold text-sm" :class="profile.borrower?.risk_label === 'High' ? 'text-red-500' : profile.borrower?.risk_label === 'Medium' ? 'text-amber-500' : 'text-emerald-600'">[[ profile.borrower?.risk_score ]] ([[ profile.borrower?.risk_label ]])</div></div>
-                <div><span class="text-xs text-neutral-500">Active loans</span><div class="text-sm">[[ profile.borrower?.active_loans ]]</div></div>
-                <div><span class="text-xs text-neutral-500">Outstanding balance</span><div class="text-sm">$[[ profile.borrower?.outstanding_balance?.toLocaleString() ]]</div></div>
-                <div><span class="text-xs text-neutral-500">Return rate</span><div class="text-sm">[[ profile.borrower?.return_rate ]]%</div></div>
-                <div><span class="text-xs text-neutral-500">Days past due</span><div class="text-sm">[[ profile.borrower?.days_past_due ]]</div></div>
-              </div>
+      </section>
 
-              <!-- Behaviour Charts -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <!-- Risk Score over time -->
-                <div class="rounded-xl border p-4 dark:border-neutral-700">
-                  <h4 class="text-xs font-semibold uppercase tracking-widest text-neutral-400 mb-3">Risk Score History</h4>
-                  <div class="h-36"><canvas :id="'borrowerRiskChart-'+profile.borrower?.id"></canvas></div>
+      <!-- BORROWER PROFILE MODAL (outside section so it's always in the DOM center) -->
+      <transition name="toast">
+        <div v-if="showProfileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" @click.self="showProfileModal=false">
+          <div class="w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-2xl bg-white shadow-2xl dark:bg-neutral-900 flex flex-col">
+            <!-- Header -->
+            <div class="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 rounded-t-2xl">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-sm">
+                  [[ profile.borrower?.full_name?.charAt(0) || '?' ]]
                 </div>
-                <!-- Loan amounts over time -->
-                <div class="rounded-xl border p-4 dark:border-neutral-700">
-                  <h4 class="text-xs font-semibold uppercase tracking-widest text-neutral-400 mb-3">Loan Amounts Over Time</h4>
-                  <div class="h-36"><canvas :id="'borrowerLoanChart-'+profile.borrower?.id"></canvas></div>
+                <div>
+                  <h2 class="text-base font-semibold">[[ profile.borrower?.full_name || 'Borrower Profile' ]]</h2>
+                  <p class="text-xs text-neutral-500 mono">[[ profile.borrower?.id ]]</p>
                 </div>
-                <!-- Application outcome breakdown -->
-                <div class="rounded-xl border p-4 dark:border-neutral-700">
-                  <h4 class="text-xs font-semibold uppercase tracking-widest text-neutral-400 mb-3">Application Outcomes</h4>
-                  <div class="h-36"><canvas :id="'borrowerOutcomeChart-'+profile.borrower?.id"></canvas></div>
+              </div>
+              <button @click="showProfileModal=false" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 text-xl transition">&times;</button>
+            </div>
+
+            <div class="p-6">
+              <div v-if="profileLoading" class="flex flex-col items-center justify-center py-16 gap-3">
+                <svg class="w-8 h-8 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+                <span class="text-sm text-neutral-500">Loading profile...</span>
+              </div>
+              <div v-else>
+                <!-- Risk badge strip -->
+                <div class="flex flex-wrap gap-2 mb-5">
+                  <span class="badge px-3 py-1 rounded-full text-xs font-semibold"
+                    :class="profile.borrower?.risk_label === 'High' ? 'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400' : profile.borrower?.risk_label === 'Medium' ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400' : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400'">
+                    [[ profile.borrower?.risk_label ]] Risk — Score [[ profile.borrower?.risk_score ]]
+                  </span>
+                  <span v-if="profile.borrower?.days_past_due > 0" class="badge px-3 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-500 dark:bg-red-500/10 dark:text-red-400">
+                    [[ profile.borrower?.days_past_due ]] days past due
+                  </span>
                 </div>
-                <!-- Risk probability bars -->
-                <div class="rounded-xl border p-4 dark:border-neutral-700">
-                  <h4 class="text-xs font-semibold uppercase tracking-widest text-neutral-400 mb-3">Current Risk Probabilities</h4>
-                  <div class="space-y-2 mt-2">
-                    <div v-for="(label, color) in {High:'red', Medium:'amber', Low:'emerald'}" :key="label">
-                      <div class="flex justify-between text-xs mb-0.5"><span>[[ label ]]</span><span class="mono">[[ Math.round((profile.borrower?.['risk_probability_'+label.toLowerCase()] || 0)*100) ]]%</span></div>
-                      <div class="h-2 rounded-full bg-neutral-100 dark:bg-neutral-700">
-                        <div class="h-2 rounded-full transition-all" :class="'bg-'+color+'-500'" :style="{width: Math.round((profile.borrower?.['risk_probability_'+label.toLowerCase()] || 0)*100)+'%'}"></div>
+
+                <!-- Basic Info Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-neutral-50 rounded-xl dark:bg-neutral-800/60 mb-6">
+                  <div class="space-y-0.5"><span class="text-[10px] uppercase tracking-widest text-neutral-400">Salary</span><div class="font-semibold text-sm text-neutral-800 dark:text-neutral-100">$[[ profile.borrower?.salary?.toLocaleString() ]]</div></div>
+                  <div class="space-y-0.5"><span class="text-[10px] uppercase tracking-widest text-neutral-400">Active Loans</span><div class="font-semibold text-sm text-neutral-800 dark:text-neutral-100">[[ profile.borrower?.active_loans ]]</div></div>
+                  <div class="space-y-0.5"><span class="text-[10px] uppercase tracking-widest text-neutral-400">Outstanding</span><div class="font-semibold text-sm text-neutral-800 dark:text-neutral-100">$[[ profile.borrower?.outstanding_balance?.toLocaleString() ]]</div></div>
+                  <div class="space-y-0.5"><span class="text-[10px] uppercase tracking-widest text-neutral-400">Return Rate</span><div class="font-semibold text-sm text-neutral-800 dark:text-neutral-100">[[ profile.borrower?.return_rate ]]%</div></div>
+                </div>
+
+                <!-- Charts grid — static IDs so Chart.js always finds them -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                  <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-4">
+                    <h4 class="text-[10px] font-semibold uppercase tracking-widest text-neutral-400 mb-3">Risk Score History</h4>
+                    <div class="h-40"><canvas id="bRiskChart"></canvas></div>
+                  </div>
+                  <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-4">
+                    <h4 class="text-[10px] font-semibold uppercase tracking-widest text-neutral-400 mb-3">Loan Amounts Over Time</h4>
+                    <div class="h-40"><canvas id="bLoanChart"></canvas></div>
+                  </div>
+                  <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-4">
+                    <h4 class="text-[10px] font-semibold uppercase tracking-widest text-neutral-400 mb-3">Application Outcomes</h4>
+                    <div class="h-40"><canvas id="bOutcomeChart"></canvas></div>
+                  </div>
+                  <!-- Risk probability bars -->
+                  <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-4">
+                    <h4 class="text-[10px] font-semibold uppercase tracking-widest text-neutral-400 mb-3">Current Risk Probabilities</h4>
+                    <div class="space-y-3 mt-2">
+                      <div>
+                        <div class="flex justify-between text-xs mb-1"><span class="text-neutral-700 dark:text-neutral-200 font-medium">Red (High)</span><span class="mono font-semibold text-red-500">[[ riskPct(profile.borrower?.risk_probability_red ?? profile.borrower?.risk_probability_high) ]]%</span></div>
+                        <div class="h-2 rounded-full bg-neutral-100 dark:bg-neutral-700"><div class="h-2 rounded-full bg-red-500 transition-all" :style="{width: riskPct(profile.borrower?.risk_probability_red ?? profile.borrower?.risk_probability_high)+'%'}"></div></div>
+                      </div>
+                      <div>
+                        <div class="flex justify-between text-xs mb-1"><span class="text-neutral-700 dark:text-neutral-200 font-medium">Amber (Medium)</span><span class="mono font-semibold text-amber-500">[[ riskPct(profile.borrower?.risk_probability_amber ?? profile.borrower?.risk_probability_medium) ]]%</span></div>
+                        <div class="h-2 rounded-full bg-neutral-100 dark:bg-neutral-700"><div class="h-2 rounded-full bg-amber-500 transition-all" :style="{width: riskPct(profile.borrower?.risk_probability_amber ?? profile.borrower?.risk_probability_medium)+'%'}"></div></div>
+                      </div>
+                      <div>
+                        <div class="flex justify-between text-xs mb-1"><span class="text-neutral-700 dark:text-neutral-200 font-medium">Emerald (Low)</span><span class="mono font-semibold text-emerald-500">[[ riskPct(profile.borrower?.risk_probability_emerald ?? profile.borrower?.risk_probability_low) ]]%</span></div>
+                        <div class="h-2 rounded-full bg-neutral-100 dark:bg-neutral-700"><div class="h-2 rounded-full bg-emerald-500 transition-all" :style="{width: riskPct(profile.borrower?.risk_probability_emerald ?? profile.borrower?.risk_probability_low)+'%'}"></div></div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <!-- Transactions -->
-              <div class="mb-4">
-                <h3 class="text-sm font-semibold mb-2">Loan Applications</h3>
-                <div class="space-y-2 max-h-48 overflow-y-auto">
-                  <div v-for="tx in profile.transactions" :key="tx.id" class="border-b dark:border-neutral-800 py-2 text-xs flex justify-between items-center">
-                    <span class="mono">[[ tx.timestamp?.slice(0,10) ]]</span>
-                    <span>$[[ tx.amount?.toLocaleString() ]]</span>
-                    <span class="badge px-1.5 py-0.5 rounded-full" :class="tx.status==='approved'?'bg-emerald-100 text-emerald-700':tx.status==='rejected'?'bg-red-100 text-red-600':'bg-neutral-100 text-neutral-600'">[[ tx.status?.toUpperCase() ]]</span>
-                    <span class="text-neutral-400">Risk: [[ tx.risk_label_after ]]</span>
-                  </div>
-                  <div v-if="!profile.transactions?.length" class="text-xs text-neutral-500">No transactions</div>
-                </div>
-              </div>
-
-              <!-- Anomaly alerts in profile -->
-              <div class="mb-4">
-                <h3 class="text-sm font-semibold mb-2">Anomaly History</h3>
-                <div class="space-y-2 max-h-48 overflow-y-auto">
-                  <div v-for="alert in profile.alerts?.filter(a => a.alert_type === 'ANOMALY_DETECTED')" :key="alert.id" class="border-b dark:border-neutral-800 py-2 text-xs">
-                    <span class="font-medium">[[ alert.alert_type ]]</span>
-                    <span class="ml-2 badge px-1.5 py-0.5 rounded-full" :class="alert.severity==='CRITICAL'?'bg-red-100 text-red-600':'bg-amber-100 text-amber-600'">[[ alert.severity ]]</span>
-                    <span class="ml-2 mono text-neutral-400">[[ alert.timestamp?.slice(0,10) ]]</span>
-                    <div class="mt-0.5 flex flex-wrap gap-1">
-                      <span v-for="code in parseAnomalyCodes(alert.message)" :key="code" class="px-1.5 py-0.5 rounded bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 font-mono text-[9px]">[[ code ]]</span>
+                <!-- Loan Applications table -->
+                <div class="mb-5">
+                  <h3 class="text-sm font-semibold mb-2 text-neutral-800 dark:text-neutral-100">Loan Applications</h3>
+                  <div class="rounded-xl border border-neutral-200 dark:border-neutral-700 overflow-hidden">
+                    <div class="max-h-48 overflow-y-auto">
+                      <div v-if="!profile.transactions?.length" class="text-xs text-neutral-500 p-4">No applications on record.</div>
+                      <table v-else class="w-full text-xs">
+                        <thead class="sticky top-0 bg-neutral-50 dark:bg-neutral-800">
+                          <tr class="border-b border-neutral-200 dark:border-neutral-700">
+                            <th class="px-3 py-2 text-left text-[10px] uppercase text-neutral-400">Date</th>
+                            <th class="px-3 py-2 text-left text-[10px] uppercase text-neutral-400">Amount</th>
+                            <th class="px-3 py-2 text-left text-[10px] uppercase text-neutral-400">Status</th>
+                            <th class="px-3 py-2 text-left text-[10px] uppercase text-neutral-400">Risk After</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr v-for="tx in profile.transactions" :key="tx.id" class="border-b border-neutral-100 dark:border-neutral-800 hover:bg-neutral-50 dark:hover:bg-neutral-800/60">
+                            <td class="px-3 py-2 mono text-neutral-500">[[ tx.timestamp?.slice(0,10) ]]</td>
+                            <td class="px-3 py-2 font-medium">$[[ tx.amount?.toLocaleString() ]]</td>
+                            <td class="px-3 py-2"><span class="badge px-1.5 py-0.5 rounded-full" :class="tx.status==='approved'?'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400':tx.status==='rejected'?'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400':'bg-neutral-100 text-neutral-600 dark:bg-neutral-700 dark:text-neutral-300'">[[ tx.status?.toUpperCase() ]]</span></td>
+                            <td class="px-3 py-2 text-neutral-500">[[ tx.risk_label_after || '--' ]]</td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                   </div>
-                  <div v-if="!profile.alerts?.filter(a => a.alert_type === 'ANOMALY_DETECTED').length" class="text-xs text-neutral-500">No anomalies</div>
                 </div>
-              </div>
 
-              <div v-if="profile.credit_bureau" class="mt-4 p-3 bg-blue-50 rounded-xl dark:bg-blue-950/20">
-                <h3 class="text-sm font-semibold">Credit Bureau Data</h3>
-                <div class="grid grid-cols-2 gap-2 text-xs mt-2">
-                  <div>External active loans: [[ profile.credit_bureau.active_loans_elsewhere ]]</div>
-                  <div>External outstanding: $[[ profile.credit_bureau.outstanding_elsewhere ]]</div>
-                  <div>External repayment rate: [[ profile.credit_bureau.repayment_rate_elsewhere ]]%</div>
-                  <div>External days past due: [[ profile.credit_bureau.days_past_due_elsewhere ]]</div>
-                  <div class="col-span-2">Institutions: [[ profile.credit_bureau.institutions?.join(', ') ]]</div>
+                <!-- Anomaly History -->
+                <div class="mb-5">
+                  <h3 class="text-sm font-semibold mb-2 text-neutral-800 dark:text-neutral-100">Anomaly History</h3>
+                  <div v-if="!profile.alerts?.filter(a => a.alert_type === 'ANOMALY_DETECTED').length" class="text-xs text-neutral-500 p-3 rounded-xl border border-neutral-100 dark:border-neutral-800">No anomalies detected for this borrower.</div>
+                  <div v-else class="space-y-2 max-h-48 overflow-y-auto">
+                    <div v-for="alert in profile.alerts?.filter(a => a.alert_type === 'ANOMALY_DETECTED')" :key="alert.id"
+                      class="rounded-xl border border-neutral-100 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800/40 px-3 py-2">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <span class="badge px-2 py-0.5 rounded-full text-[10px]" :class="alert.severity==='CRITICAL'?'bg-red-100 text-red-600 dark:bg-red-500/20 dark:text-red-400':'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'">[[ alert.severity ]]</span>
+                        <span class="mono text-[10px] text-neutral-400">[[ alert.timestamp?.slice(0,10) ]]</span>
+                        <span class="text-xs font-semibold text-neutral-700 dark:text-neutral-200">Score: [[ parseAnomalyScore(alert.message) ]]</span>
+                      </div>
+                      <div class="mt-1.5 flex flex-wrap gap-1">
+                        <span v-for="code in parseAnomalyCodes(alert.message)" :key="code" class="px-1.5 py-0.5 rounded bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 font-mono text-[9px] border border-red-100 dark:border-red-500/20">[[ code ]]</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Credit Bureau -->
+                <div v-if="profile.credit_bureau" class="p-4 bg-blue-50 dark:bg-blue-950/30 rounded-xl border border-blue-100 dark:border-blue-500/20">
+                  <h3 class="text-sm font-semibold text-blue-700 dark:text-blue-300 mb-3">Credit Bureau Data</h3>
+                  <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div class="space-y-0.5"><span class="text-[10px] uppercase tracking-widest text-blue-400">External Loans</span><div class="font-semibold text-neutral-700 dark:text-neutral-200">[[ profile.credit_bureau.active_loans_elsewhere ]]</div></div>
+                    <div class="space-y-0.5"><span class="text-[10px] uppercase tracking-widest text-blue-400">External Outstanding</span><div class="font-semibold text-neutral-700 dark:text-neutral-200">$[[ profile.credit_bureau.outstanding_elsewhere ]]</div></div>
+                    <div class="space-y-0.5"><span class="text-[10px] uppercase tracking-widest text-blue-400">External Repayment</span><div class="font-semibold text-neutral-700 dark:text-neutral-200">[[ profile.credit_bureau.repayment_rate_elsewhere ]]%</div></div>
+                    <div class="space-y-0.5"><span class="text-[10px] uppercase tracking-widest text-blue-400">Days Past Due</span><div class="font-semibold text-neutral-700 dark:text-neutral-200">[[ profile.credit_bureau.days_past_due_elsewhere ]]</div></div>
+                    <div class="col-span-2 space-y-0.5"><span class="text-[10px] uppercase tracking-widest text-blue-400">Institutions</span><div class="font-semibold text-neutral-700 dark:text-neutral-200">[[ profile.credit_bureau.institutions?.join(', ') || '--' ]]</div></div>
+                  </div>
                 </div>
               </div>
             </div>
-            <div class="mt-6 flex justify-end"><button @click="showProfileModal=false" class="rounded-xl bg-neutral-900 px-4 py-2 text-white">Close</button></div>
+
+            <div class="sticky bottom-0 flex justify-between items-center px-6 py-4 border-t border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-900 rounded-b-2xl">
+              <button @click="activeTab='anomalies'; showProfileModal=false" class="text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium">View anomalies →</button>
+              <button @click="showProfileModal=false" class="rounded-xl bg-neutral-900 dark:bg-white px-5 py-2 text-sm font-semibold text-white dark:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-100 transition">Close</button>
+            </div>
           </div>
         </div>
-      </section>
+      </transition>
 
       <!-- NOTIFICATIONS TAB -->
       <section v-if="activeTab === 'notifications'" class="fade-up space-y-4">
@@ -651,14 +820,18 @@
       // ----- Anomaly helpers -----
       const parseAnomalyCodes = (msg) => {
         if (!msg) return [];
-        const m = msg.match(/\(score [\d.]+\/100\):\s*([A-Z_,\s]+?)\.(?:\s|$)/);
+        // Match codes after the score line: "(score X/100): CODE1, CODE2."
+        const m = msg.match(/\(score\s+[\d.]+\/100\)\s*:\s*([A-Z][A-Z0-9_,\s]+?)\.(?:\s|$)/);
         if (!m) return [];
         return m[1].split(',').map(s => s.trim()).filter(Boolean);
       };
       const parseAnomalyScore = (msg) => {
         if (!msg) return '--';
-        const m = msg.match(/score ([\d.]+\/100)/);
-        return m ? m[1] : '--';
+        // Try "anomaly_score: X" first, then fallback to "(score X/100)"
+        const m1 = msg.match(/anomaly[_\s]score[:\s]+([\d.]+)/i);
+        if (m1) return m1[1];
+        const m2 = msg.match(/\(score\s+([\d.]+\/100)\)/);
+        return m2 ? m2[1] : '--';
       };
       const formatAnomalyFailed = (msg) => {
         if (!msg) return '';
@@ -697,46 +870,59 @@
         return alert.message?.substring(0, 80) + (alert.message?.length > 80 ? '...' : '');
       };
 
-      // ----- Borrower profile charts -----
+      // ----- riskPct helper (handles 0-1 fractions or 0-100 integers) -----
+      const riskPct = (v) => {
+        if (v == null || isNaN(v)) return 0;
+        return Math.round(v > 1 ? v : v * 100);
+      };
+
+      // ----- Borrower profile charts (use static IDs: bRiskChart, bLoanChart, bOutcomeChart) -----
       let borrowerCharts = {};
-      const renderBorrowerCharts = () => {
+      const renderBorrowerCharts = async () => {
         const b = profile.value.borrower;
         const txs = profile.value.transactions || [];
         if (!b) return;
-        // destroy old
+        // Wait two ticks so Vue renders the modal + canvases first
+        await Vue.nextTick();
+        await Vue.nextTick();
+        // destroy old charts
         Object.values(borrowerCharts).forEach(c => c?.destroy());
         borrowerCharts = {};
 
-        const sorted = [...txs].sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
-        const labels = sorted.map(t => t.timestamp?.slice(0,10) || '');
+        const colors = getChartColors();
+        const sorted = [...txs].sort((a, _b) => new Date(a.timestamp) - new Date(_b.timestamp));
+        const labels = sorted.map(t => t.timestamp?.slice(0, 10) || '');
         const riskScores = sorted.map(t => t.risk_score_after || 0);
         const loanAmounts = sorted.map(t => t.amount || 0);
 
         const chartDefaults = {
           responsive: true, maintainAspectRatio: false,
           plugins: { legend: { display: false } },
-          scales: { x: { ticks: { maxTicksLimit: 5, font: { size: 9 } } }, y: { ticks: { font: { size: 9 } } } }
+          scales: {
+            x: { grid: { color: colors.grid }, ticks: { color: colors.tick, maxTicksLimit: 5, font: { size: 9 } } },
+            y: { grid: { color: colors.grid }, ticks: { color: colors.tick, font: { size: 9 } } }
+          }
         };
 
-        const riskCtx = document.getElementById('borrowerRiskChart-' + b.id);
+        const riskCtx = document.getElementById('bRiskChart');
         if (riskCtx) {
           borrowerCharts.risk = new Chart(riskCtx, {
             type: 'line',
             data: {
-              labels,
-              datasets: [{ data: riskScores, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.08)', borderWidth: 2, tension: 0.4, fill: true, pointRadius: 2 }]
+              labels: labels.length ? labels : ['No data'],
+              datasets: [{ data: riskScores.length ? riskScores : [0], borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.08)', borderWidth: 2, tension: 0.4, fill: true, pointRadius: 2 }]
             },
-            options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { min: 0, max: 100, ticks: { font: { size: 9 } } } } }
+            options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, min: 0, max: 100 } } }
           });
         }
 
-        const loanCtx = document.getElementById('borrowerLoanChart-' + b.id);
+        const loanCtx = document.getElementById('bLoanChart');
         if (loanCtx) {
           borrowerCharts.loans = new Chart(loanCtx, {
             type: 'bar',
             data: {
-              labels,
-              datasets: [{ data: loanAmounts, backgroundColor: 'rgba(59,130,246,0.5)', borderColor: '#3b82f6', borderWidth: 1, borderRadius: 3 }]
+              labels: labels.length ? labels : ['No data'],
+              datasets: [{ data: loanAmounts.length ? loanAmounts : [0], backgroundColor: 'rgba(59,130,246,0.5)', borderColor: '#3b82f6', borderWidth: 1, borderRadius: 3 }]
             },
             options: chartDefaults
           });
@@ -745,15 +931,18 @@
         const approved = sorted.filter(t => t.status === 'approved').length;
         const rejected = sorted.filter(t => t.status === 'rejected').length;
         const other = sorted.length - approved - rejected;
-        const outcomeCtx = document.getElementById('borrowerOutcomeChart-' + b.id);
+        const outcomeCtx = document.getElementById('bOutcomeChart');
         if (outcomeCtx) {
           borrowerCharts.outcomes = new Chart(outcomeCtx, {
             type: 'doughnut',
             data: {
               labels: ['Approved', 'Rejected', 'Other'],
-              datasets: [{ data: [approved, rejected, other], backgroundColor: ['#10b981', '#ef4444', '#6b7280'], borderWidth: 0 }]
+              datasets: [{ data: [approved || 0, rejected || 0, other || 0], backgroundColor: ['#10b981', '#ef4444', '#6b7280'], borderWidth: 0, hoverOffset: 4 }]
             },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 8 } } } }
+            options: {
+              responsive: true, maintainAspectRatio: false,
+              plugins: { legend: { position: 'bottom', labels: { color: colors.tick, font: { size: 9 }, padding: 8 } } }
+            }
           });
         }
       };
@@ -788,15 +977,16 @@
       async function viewBorrowerProfile(borrowerId) {
         showProfileModal.value = true;
         profileLoading.value = true;
+        profile.value = {};
         try {
           const { data } = await axios.get(`/api/borrowers/${borrowerId}`);
           profile.value = data;
-          await Vue.nextTick();
+          profileLoading.value = false;
+          // renderBorrowerCharts is async and waits for Vue to render canvases
           renderBorrowerCharts();
         } catch (err) {
           console.error('viewBorrowerProfile error:', err);
           profile.value = {};
-        } finally {
           profileLoading.value = false;
         }
       }
@@ -815,9 +1005,9 @@
         renderDistChart();
       });
 
-      // ----- Auto-load anomalies tab on first visit -----
+      // ----- Auto-load anomalies tab on first visit (also loaded on mount for dashboard feed) -----
       watch(activeTab, (newTab) => {
-        if (newTab === 'anomalies' && anomaliesList.value.length === 0) loadAnomalies();
+        if (newTab === 'anomalies') loadAnomalies();
       });
 
       // ----- Lifecycle -----
@@ -831,6 +1021,7 @@
         loadApplications();
         loadNotifications();
         loadBlacklist();
+        loadAnomalies();
         startAutoRefresh();
       });
 
@@ -849,7 +1040,7 @@
         anomaliesList, anomaliesLoading, anomaliesPage, anomaliesTotal, anomaliesLimit, anomalyFilters, loadAnomalies,
         showAnomalyModal, selectedAnomaly, openAnomalyDetail, closeAnomalyModal,
         parseAnomalyCodes, parseAnomalyScore, formatAnomalyFailed, formatAnomalyPassed,
-        notificationSummary, notificationBrief
+        notificationSummary, notificationBrief, riskPct
       };
     },
     delimiters: ['[[', ']]']
