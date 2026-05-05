@@ -148,12 +148,110 @@
 
       <!-- ANOMALIES TAB -->
       <section v-if="activeTab === 'anomalies'" class="fade-up space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-3"><div><h2 class="text-sm font-semibold">Anomaly Alerts</h2><p class="text-xs text-neutral-500">Filtered risk events</p></div><div class="flex flex-wrap gap-2"><select v-model="anomalyFilters.severity" class="rounded-xl border px-3 py-1.5 text-xs dark:border-neutral-700 dark:bg-neutral-800"><option value="">All severities</option><option value="CRITICAL">CRITICAL</option><option value="HIGH">HIGH</option><option value="MEDIUM">MEDIUM</option><option value="LOW">LOW</option></select><input v-model="anomalyFilters.borrower_name" placeholder="Borrower name" class="rounded-xl border px-3 py-1.5 text-xs dark:border-neutral-700 dark:bg-neutral-800" /><input type="date" v-model="anomalyFilters.start_date" class="rounded-xl border px-3 py-1.5 text-xs dark:border-neutral-700 dark:bg-neutral-800" /><input type="date" v-model="anomalyFilters.end_date" class="rounded-xl border px-3 py-1.5 text-xs dark:border-neutral-700 dark:bg-neutral-800" /><button @click="loadAnomalies(1)" class="rounded-xl bg-neutral-900 px-3 py-1.5 text-xs text-white dark:bg-white dark:text-neutral-900">Search</button></div></div>
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div><h2 class="text-sm font-semibold">Anomaly Detections</h2><p class="text-xs text-neutral-500">All ANOMALY_DETECTED events — click a row for full details</p></div>
+          <div class="flex flex-wrap gap-2">
+            <select v-model="anomalyFilters.severity" class="rounded-xl border px-3 py-1.5 text-xs dark:border-neutral-700 dark:bg-neutral-800">
+              <option value="">All severities</option>
+              <option value="CRITICAL">CRITICAL</option>
+              <option value="HIGH">HIGH</option>
+              <option value="MEDIUM">MEDIUM</option>
+              <option value="LOW">LOW</option>
+            </select>
+            <input v-model="anomalyFilters.borrower_name" placeholder="Borrower name" class="rounded-xl border px-3 py-1.5 text-xs dark:border-neutral-700 dark:bg-neutral-800" />
+            <input type="date" v-model="anomalyFilters.start_date" class="rounded-xl border px-3 py-1.5 text-xs dark:border-neutral-700 dark:bg-neutral-800" />
+            <input type="date" v-model="anomalyFilters.end_date" class="rounded-xl border px-3 py-1.5 text-xs dark:border-neutral-700 dark:bg-neutral-800" />
+            <button @click="loadAnomalies(1)" class="rounded-xl bg-neutral-900 px-3 py-1.5 text-xs text-white dark:bg-white dark:text-neutral-900">Search</button>
+          </div>
+        </div>
         <div v-if="anomaliesLoading" class="p-12 text-sm text-neutral-500 text-center">Loading...</div>
         <div v-else-if="!anomaliesList.length" class="rounded-2xl border p-12 text-sm text-center dark:border-neutral-800">No anomalies found.</div>
-        <div v-else class="rounded-2xl border bg-white dark:border-neutral-800 dark:bg-neutral-900 overflow-x-auto"><table class="w-full text-left text-sm"><thead><tr class="border-b bg-neutral-50 dark:border-neutral-800"><th class="px-4 py-3 text-[10px] uppercase">Timestamp</th><th class="px-4 py-3">Borrower</th><th class="px-4 py-3">Type</th><th class="px-4 py-3">Severity</th><th class="px-4 py-3">Message</th></tr></thead><tbody><tr v-for="alert in anomaliesList" :key="alert.id" class="border-b dark:border-neutral-800/60"><td class="px-4 py-2 mono text-xs">[[ alert.timestamp ]]</td><td class="px-4 py-2 font-medium">[[ alert.borrower_name ]]</td><td class="px-4 py-2">[[ alert.alert_type ]]</td><td class="px-4 py-2"><span class="badge px-2 py-0.5 rounded-full" :class="{'bg-red-100 text-red-600': alert.severity === 'CRITICAL', 'bg-amber-100 text-amber-600': alert.severity === 'HIGH'}">[[ alert.severity ]]</span></td><td class="px-4 py-2 text-xs text-neutral-600 dark:text-neutral-300">[[ alert.message.substring(0, 120) ]]...</td></tr></tbody></table></div>
-        <div class="flex justify-between items-center mt-2"><span class="text-xs text-neutral-400">Page [[ anomaliesPage ]] of [[ Math.ceil(anomaliesTotal / anomaliesLimit) ]]</span><div class="flex gap-2"><button @click="loadAnomalies(anomaliesPage-1)" :disabled="anomaliesPage===1" class="rounded-xl border px-3 py-1 text-xs disabled:opacity-50">Previous</button><button @click="loadAnomalies(anomaliesPage+1)" :disabled="anomaliesPage >= Math.ceil(anomaliesTotal/anomaliesLimit)" class="rounded-xl border px-3 py-1 text-xs">Next</button></div></div>
+        <div v-else class="rounded-2xl border bg-white dark:border-neutral-800 dark:bg-neutral-900 overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead><tr class="border-b bg-neutral-50 dark:border-neutral-800">
+              <th class="px-4 py-3 text-[10px] uppercase">Timestamp</th>
+              <th class="px-4 py-3">Borrower</th>
+              <th class="px-4 py-3">Anomaly Codes</th>
+              <th class="px-4 py-3">Severity</th>
+              <th class="px-4 py-3">Score</th>
+            </tr></thead>
+            <tbody>
+              <tr v-for="alert in anomaliesList" :key="alert.id"
+                  @click="openAnomalyDetail(alert)"
+                  class="border-b dark:border-neutral-800/60 cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-500/5 transition-colors">
+                <td class="px-4 py-3 mono text-xs text-neutral-500">[[ alert.timestamp ]]</td>
+                <td class="px-4 py-3 font-medium">[[ alert.borrower_name ]]</td>
+                <td class="px-4 py-3 text-xs">
+                  <div class="flex flex-wrap gap-1">
+                    <template v-for="code in parseAnomalyCodes(alert.message)" :key="code">
+                      <span class="inline-block px-1.5 py-0.5 rounded bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 font-mono text-[10px]">[[ code ]]</span>
+                    </template>
+                  </div>
+                </td>
+                <td class="px-4 py-3">
+                  <span class="badge px-2 py-0.5 rounded-full text-[10px]" :class="{'bg-red-100 text-red-600': alert.severity === 'CRITICAL', 'bg-amber-100 text-amber-600': alert.severity === 'HIGH', 'bg-yellow-50 text-yellow-600': alert.severity === 'MEDIUM', 'bg-blue-50 text-blue-600': alert.severity === 'LOW'}">[[ alert.severity ]]</span>
+                </td>
+                <td class="px-4 py-3 mono text-xs">[[ parseAnomalyScore(alert.message) ]]</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="flex justify-between items-center mt-2">
+          <span class="text-xs text-neutral-400">Page [[ anomaliesPage ]] of [[ Math.ceil(anomaliesTotal / anomaliesLimit) || 1 ]]</span>
+          <div class="flex gap-2">
+            <button @click="loadAnomalies(anomaliesPage-1)" :disabled="anomaliesPage===1" class="rounded-xl border px-3 py-1 text-xs disabled:opacity-50">Previous</button>
+            <button @click="loadAnomalies(anomaliesPage+1)" :disabled="anomaliesPage >= Math.ceil(anomaliesTotal/anomaliesLimit)" class="rounded-xl border px-3 py-1 text-xs disabled:opacity-50">Next</button>
+          </div>
+        </div>
       </section>
+
+      <!-- Anomaly Detail Modal -->
+      <transition name="toast">
+        <div v-if="showAnomalyModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" @click.self="closeAnomalyModal">
+          <div class="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-start gap-3 mb-4">
+              <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-500/20 flex-shrink-0">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+              </div>
+              <div class="flex-1">
+                <h3 class="text-base font-semibold">ANOMALY_DETECTED</h3>
+                <p class="text-xs text-neutral-500 mono mt-0.5">[[ selectedAnomaly?.timestamp ]]</p>
+              </div>
+              <span class="badge px-2 py-0.5 rounded-full text-[10px]" :class="{'bg-red-100 text-red-600': selectedAnomaly?.severity === 'CRITICAL', 'bg-amber-100 text-amber-600': selectedAnomaly?.severity === 'HIGH'}">[[ selectedAnomaly?.severity ]]</span>
+            </div>
+
+            <div class="rounded-xl bg-neutral-50 dark:bg-neutral-800 p-4 mb-4 space-y-2 text-sm">
+              <div class="flex justify-between"><span class="text-neutral-500 text-xs">Borrower</span><span class="font-semibold">[[ selectedAnomaly?.borrower_name ]]</span></div>
+              <div class="flex justify-between"><span class="text-neutral-500 text-xs">Anomaly Score</span><span class="font-semibold mono">[[ parseAnomalyScore(selectedAnomaly?.message) ]]</span></div>
+            </div>
+
+            <div class="mb-4">
+              <p class="text-xs font-semibold uppercase tracking-widest text-neutral-400 mb-2">Triggered Anomaly Codes</p>
+              <div class="flex flex-wrap gap-1.5">
+                <span v-for="code in parseAnomalyCodes(selectedAnomaly?.message)" :key="code"
+                  class="px-2.5 py-1 rounded-lg bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 font-mono text-xs border border-red-200 dark:border-red-500/20">
+                  [[ code ]]
+                </span>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <p class="text-xs font-semibold uppercase tracking-widest text-neutral-400 mb-2">Failed Areas</p>
+              <div class="space-y-1 text-xs text-neutral-600 dark:text-neutral-300" v-html="formatAnomalyFailed(selectedAnomaly?.message)"></div>
+            </div>
+
+            <div class="mb-4">
+              <p class="text-xs font-semibold uppercase tracking-widest text-neutral-400 mb-2">Passed Areas</p>
+              <div class="space-y-1 text-xs text-neutral-500" v-html="formatAnomalyPassed(selectedAnomaly?.message)"></div>
+            </div>
+
+            <div class="mt-5 flex justify-between items-center">
+              <button @click="viewBorrowerProfile(selectedAnomaly?.borrower_id); closeAnomalyModal();" class="rounded-xl border px-4 py-2 text-xs font-semibold hover:bg-neutral-50 dark:border-neutral-700 text-blue-600">View Borrower Profile</button>
+              <button @click="closeAnomalyModal" class="rounded-xl bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 dark:bg-white dark:text-neutral-900">Close</button>
+            </div>
+          </div>
+        </div>
+      </transition>
 
       <!-- BORROWER SEARCH TAB -->
       <section v-if="activeTab === 'borrowerSearch'" class="fade-up space-y-4">
@@ -162,13 +260,126 @@
         <div v-else-if="searchPerformed && !searchResults.length" class="text-center text-sm text-neutral-500 py-8">No borrowers found.</div>
 
         <!-- Profile Modal -->
-        <div v-if="showProfileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"><div class="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900"><div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold">Borrower Profile</h2><button @click="showProfileModal=false" class="text-2xl">&times;</button></div><div v-if="profileLoading" class="text-center py-8">Loading...</div><div v-else><div class="grid grid-cols-2 gap-4 p-4 bg-neutral-50 rounded-xl dark:bg-neutral-800"><div><span class="text-xs text-neutral-500">Full name</span><div class="font-medium">[[ profile.borrower?.full_name ]]</div></div><div><span class="text-xs text-neutral-500">ID</span><div class="font-mono text-sm">[[ profile.borrower?.id ]]</div></div><div><span class="text-xs text-neutral-500">Salary</span><div>$[[ profile.borrower?.salary?.toLocaleString() ]]</div></div><div><span class="text-xs text-neutral-500">Risk score</span><div class="font-semibold">[[ profile.borrower?.risk_score ]] ([[ profile.borrower?.risk_label ]])</div></div><div><span class="text-xs text-neutral-500">Active loans</span><div>[[ profile.borrower?.active_loans ]]</div></div><div><span class="text-xs text-neutral-500">Outstanding balance</span><div>$[[ profile.borrower?.outstanding_balance?.toLocaleString() ]]</div></div><div><span class="text-xs text-neutral-500">Return rate</span><div>[[ profile.borrower?.return_rate ]]%</div></div><div><span class="text-xs text-neutral-500">Days past due</span><div>[[ profile.borrower?.days_past_due ]]</div></div></div><div class="mt-4"><h3 class="text-sm font-semibold mb-2">Loan Applications</h3><div class="space-y-2 max-h-60 overflow-y-auto"><div v-for="tx in profile.transactions" :key="tx.id" class="border-b dark:border-neutral-800 py-2 text-sm"><span class="mono">[[ tx.timestamp.slice(0,10) ]]</span> - $[[ tx.amount ]] - [[ tx.status ]] - Risk: [[ tx.risk_label_after ]]</div><div v-if="!profile.transactions?.length" class="text-xs text-neutral-500">No transactions</div></div></div><div class="mt-4"><h3 class="text-sm font-semibold mb-2">Anomaly Alerts</h3><div class="space-y-2 max-h-60 overflow-y-auto"><div v-for="alert in profile.alerts" :key="alert.id" class="border-b dark:border-neutral-800 py-2 text-xs"><span class="font-medium">[[ alert.alert_type ]]</span> ([[ alert.severity ]]) - [[ alert.timestamp.slice(0,10) ]]<br/><span class="text-neutral-500">[[ alert.message.substring(0,120) ]]</span></div></div></div><div v-if="profile.credit_bureau" class="mt-4 p-3 bg-blue-50 rounded-xl dark:bg-blue-950/20"><h3 class="text-sm font-semibold">Credit Bureau Data</h3><div class="grid grid-cols-2 gap-2 text-xs mt-2"><div>External active loans: [[ profile.credit_bureau.active_loans_elsewhere ]]</div><div>External outstanding: $[[ profile.credit_bureau.outstanding_elsewhere ]]</div><div>External repayment rate: [[ profile.credit_bureau.repayment_rate_elsewhere ]]%</div><div>External days past due: [[ profile.credit_bureau.days_past_due_elsewhere ]]</div><div class="col-span-2">Institutions: [[ profile.credit_bureau.institutions.join(', ') ]]</div></div></div></div><div class="mt-6 flex justify-end"><button @click="showProfileModal=false" class="rounded-xl bg-neutral-900 px-4 py-2 text-white">Close</button></div></div></div>
+        <div v-if="showProfileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div class="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900">
+            <div class="flex justify-between items-center mb-4">
+              <h2 class="text-xl font-semibold">Borrower Profile</h2>
+              <button @click="showProfileModal=false" class="text-2xl">&times;</button>
+            </div>
+            <div v-if="profileLoading" class="text-center py-8">Loading...</div>
+            <div v-else>
+              <!-- Basic Info Grid -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 bg-neutral-50 rounded-xl dark:bg-neutral-800 mb-4">
+                <div><span class="text-xs text-neutral-500">Full name</span><div class="font-medium text-sm">[[ profile.borrower?.full_name ]]</div></div>
+                <div><span class="text-xs text-neutral-500">ID</span><div class="font-mono text-sm">[[ profile.borrower?.id ]]</div></div>
+                <div><span class="text-xs text-neutral-500">Salary</span><div class="text-sm">$[[ profile.borrower?.salary?.toLocaleString() ]]</div></div>
+                <div><span class="text-xs text-neutral-500">Risk score</span><div class="font-semibold text-sm" :class="profile.borrower?.risk_label === 'High' ? 'text-red-500' : profile.borrower?.risk_label === 'Medium' ? 'text-amber-500' : 'text-emerald-600'">[[ profile.borrower?.risk_score ]] ([[ profile.borrower?.risk_label ]])</div></div>
+                <div><span class="text-xs text-neutral-500">Active loans</span><div class="text-sm">[[ profile.borrower?.active_loans ]]</div></div>
+                <div><span class="text-xs text-neutral-500">Outstanding balance</span><div class="text-sm">$[[ profile.borrower?.outstanding_balance?.toLocaleString() ]]</div></div>
+                <div><span class="text-xs text-neutral-500">Return rate</span><div class="text-sm">[[ profile.borrower?.return_rate ]]%</div></div>
+                <div><span class="text-xs text-neutral-500">Days past due</span><div class="text-sm">[[ profile.borrower?.days_past_due ]]</div></div>
+              </div>
+
+              <!-- Behaviour Charts -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <!-- Risk Score over time -->
+                <div class="rounded-xl border p-4 dark:border-neutral-700">
+                  <h4 class="text-xs font-semibold uppercase tracking-widest text-neutral-400 mb-3">Risk Score History</h4>
+                  <div class="h-36"><canvas :id="'borrowerRiskChart-'+profile.borrower?.id"></canvas></div>
+                </div>
+                <!-- Loan amounts over time -->
+                <div class="rounded-xl border p-4 dark:border-neutral-700">
+                  <h4 class="text-xs font-semibold uppercase tracking-widest text-neutral-400 mb-3">Loan Amounts Over Time</h4>
+                  <div class="h-36"><canvas :id="'borrowerLoanChart-'+profile.borrower?.id"></canvas></div>
+                </div>
+                <!-- Application outcome breakdown -->
+                <div class="rounded-xl border p-4 dark:border-neutral-700">
+                  <h4 class="text-xs font-semibold uppercase tracking-widest text-neutral-400 mb-3">Application Outcomes</h4>
+                  <div class="h-36"><canvas :id="'borrowerOutcomeChart-'+profile.borrower?.id"></canvas></div>
+                </div>
+                <!-- Risk probability bars -->
+                <div class="rounded-xl border p-4 dark:border-neutral-700">
+                  <h4 class="text-xs font-semibold uppercase tracking-widest text-neutral-400 mb-3">Current Risk Probabilities</h4>
+                  <div class="space-y-2 mt-2">
+                    <div v-for="(label, color) in {High:'red', Medium:'amber', Low:'emerald'}" :key="label">
+                      <div class="flex justify-between text-xs mb-0.5"><span>[[ label ]]</span><span class="mono">[[ Math.round((profile.borrower?.['risk_probability_'+label.toLowerCase()] || 0)*100) ]]%</span></div>
+                      <div class="h-2 rounded-full bg-neutral-100 dark:bg-neutral-700">
+                        <div class="h-2 rounded-full transition-all" :class="'bg-'+color+'-500'" :style="{width: Math.round((profile.borrower?.['risk_probability_'+label.toLowerCase()] || 0)*100)+'%'}"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Transactions -->
+              <div class="mb-4">
+                <h3 class="text-sm font-semibold mb-2">Loan Applications</h3>
+                <div class="space-y-2 max-h-48 overflow-y-auto">
+                  <div v-for="tx in profile.transactions" :key="tx.id" class="border-b dark:border-neutral-800 py-2 text-xs flex justify-between items-center">
+                    <span class="mono">[[ tx.timestamp?.slice(0,10) ]]</span>
+                    <span>$[[ tx.amount?.toLocaleString() ]]</span>
+                    <span class="badge px-1.5 py-0.5 rounded-full" :class="tx.status==='approved'?'bg-emerald-100 text-emerald-700':tx.status==='rejected'?'bg-red-100 text-red-600':'bg-neutral-100 text-neutral-600'">[[ tx.status?.toUpperCase() ]]</span>
+                    <span class="text-neutral-400">Risk: [[ tx.risk_label_after ]]</span>
+                  </div>
+                  <div v-if="!profile.transactions?.length" class="text-xs text-neutral-500">No transactions</div>
+                </div>
+              </div>
+
+              <!-- Anomaly alerts in profile -->
+              <div class="mb-4">
+                <h3 class="text-sm font-semibold mb-2">Anomaly History</h3>
+                <div class="space-y-2 max-h-48 overflow-y-auto">
+                  <div v-for="alert in profile.alerts?.filter(a => a.alert_type === 'ANOMALY_DETECTED')" :key="alert.id" class="border-b dark:border-neutral-800 py-2 text-xs">
+                    <span class="font-medium">[[ alert.alert_type ]]</span>
+                    <span class="ml-2 badge px-1.5 py-0.5 rounded-full" :class="alert.severity==='CRITICAL'?'bg-red-100 text-red-600':'bg-amber-100 text-amber-600'">[[ alert.severity ]]</span>
+                    <span class="ml-2 mono text-neutral-400">[[ alert.timestamp?.slice(0,10) ]]</span>
+                    <div class="mt-0.5 flex flex-wrap gap-1">
+                      <span v-for="code in parseAnomalyCodes(alert.message)" :key="code" class="px-1.5 py-0.5 rounded bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400 font-mono text-[9px]">[[ code ]]</span>
+                    </div>
+                  </div>
+                  <div v-if="!profile.alerts?.filter(a => a.alert_type === 'ANOMALY_DETECTED').length" class="text-xs text-neutral-500">No anomalies</div>
+                </div>
+              </div>
+
+              <div v-if="profile.credit_bureau" class="mt-4 p-3 bg-blue-50 rounded-xl dark:bg-blue-950/20">
+                <h3 class="text-sm font-semibold">Credit Bureau Data</h3>
+                <div class="grid grid-cols-2 gap-2 text-xs mt-2">
+                  <div>External active loans: [[ profile.credit_bureau.active_loans_elsewhere ]]</div>
+                  <div>External outstanding: $[[ profile.credit_bureau.outstanding_elsewhere ]]</div>
+                  <div>External repayment rate: [[ profile.credit_bureau.repayment_rate_elsewhere ]]%</div>
+                  <div>External days past due: [[ profile.credit_bureau.days_past_due_elsewhere ]]</div>
+                  <div class="col-span-2">Institutions: [[ profile.credit_bureau.institutions?.join(', ') ]]</div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-6 flex justify-end"><button @click="showProfileModal=false" class="rounded-xl bg-neutral-900 px-4 py-2 text-white">Close</button></div>
+          </div>
+        </div>
       </section>
 
       <!-- NOTIFICATIONS TAB -->
       <section v-if="activeTab === 'notifications'" class="fade-up space-y-4">
-        <div class="flex items-center justify-between"><div><h2 class="text-sm font-semibold">Notifications</h2><p class="text-xs text-neutral-500">Alerts &amp; system events</p></div><div class="flex items-center gap-2"><button class="flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold disabled:opacity-40" :disabled="notificationOffset === 0 || notificationsLoading" @click="prevNotifications">Previous</button><button class="flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold disabled:opacity-40" :disabled="!notificationsHasMore || notificationsLoading" @click="nextNotifications">Load more</button><button class="flex items-center gap-1.5 rounded-xl border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 shadow-sm transition disabled:opacity-40 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300" :disabled="notificationsLoading || !notifications.length" @click="clearNotifications">Clear all</button></div></div>
-        <div v-if="notificationsLoading" class="rounded-2xl border p-12 text-center text-sm">Loading...</div><div v-else-if="!notifications.length" class="rounded-2xl border p-12 text-center text-sm">No notifications.</div><div v-else class="space-y-2"><button v-for="alert in notifications" :key="alert.id" @click="openNotification(alert)" class="w-full text-left rounded-2xl border p-4 shadow-sm hover:border-neutral-300 transition-colors dark:border-neutral-800 dark:bg-neutral-900"><div class="flex items-start gap-3"><div class="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center" :class="alert.severity === 'HIGH' ? 'bg-red-100 text-red-500' : alert.severity === 'MEDIUM' ? 'bg-amber-100 text-amber-500' : 'bg-blue-100 text-blue-500'"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="flex-1"><div class="flex items-center justify-between gap-2 flex-wrap"><span class="text-sm font-semibold">[[ alert.alert_type ]]</span><span class="badge px-2 py-0.5 rounded-full" :class="alert.severity === 'HIGH' ? 'bg-red-100 text-red-600' : alert.severity === 'MEDIUM' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'">[[ alert.severity ]]</span></div><p class="mt-1 text-xs text-neutral-500 leading-relaxed">[[ alert.message ]]</p><p class="mt-2 mono text-[10px] text-neutral-400">[[ alert.timestamp ]]</p></div></div></button></div>
+        <div class="flex items-center justify-between"><div><h2 class="text-sm font-semibold">Notifications</h2><p class="text-xs text-neutral-500">System events — for full anomaly details, see the Anomalies page</p></div><div class="flex items-center gap-2"><button class="flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold disabled:opacity-40" :disabled="notificationOffset === 0 || notificationsLoading" @click="prevNotifications">Previous</button><button class="flex items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold disabled:opacity-40" :disabled="!notificationsHasMore || notificationsLoading" @click="nextNotifications">Load more</button><button class="flex items-center gap-1.5 rounded-xl border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-100 shadow-sm transition disabled:opacity-40 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300" :disabled="notificationsLoading || !notifications.length" @click="clearNotifications">Clear all</button></div></div>
+        <div v-if="notificationsLoading" class="rounded-2xl border p-12 text-center text-sm">Loading...</div>
+        <div v-else-if="!notifications.length" class="rounded-2xl border p-12 text-center text-sm">No notifications.</div>
+        <div v-else class="space-y-2">
+          <button v-for="alert in notifications" :key="alert.id" @click="openNotification(alert)" class="w-full text-left rounded-2xl border p-4 shadow-sm hover:border-neutral-300 transition-colors dark:border-neutral-800 dark:bg-neutral-900">
+            <div class="flex items-start gap-3">
+              <div class="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center"
+                :class="alert.severity === 'CRITICAL' ? 'bg-red-100 text-red-500 dark:bg-red-500/10' : alert.severity === 'HIGH' ? 'bg-amber-100 text-amber-500 dark:bg-amber-500/10' : 'bg-blue-100 text-blue-500 dark:bg-blue-500/10'">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center justify-between gap-2 flex-wrap">
+                  <span class="text-sm font-semibold">[[ notificationSummary(alert) ]]</span>
+                  <span class="badge px-2 py-0.5 rounded-full text-[10px]" :class="alert.severity === 'CRITICAL' ? 'bg-red-100 text-red-600' : alert.severity === 'HIGH' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'">[[ alert.severity ]]</span>
+                </div>
+                <p class="mt-1 text-xs text-neutral-500">[[ notificationBrief(alert) ]]</p>
+                <p class="mt-1.5 mono text-[10px] text-neutral-400">[[ alert.timestamp ]]</p>
+              </div>
+            </div>
+          </button>
+        </div>
       </section>
 
       <!-- BLACKLIST TAB -->
@@ -180,7 +391,7 @@
     </main>
 
     <!-- Notification Detail Modal -->
-    <transition name="toast"><div v-if="showNotificationModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"><div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900"><div class="flex items-start gap-3"><div class="flex h-10 w-10 items-center justify-center rounded-full" :class="selectedNotification?.severity === 'HIGH' ? 'bg-red-100 text-red-600' : selectedNotification?.severity === 'MEDIUM' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="flex-1"><h3 class="text-base font-semibold">[[ selectedNotification?.alert_type || 'Notification' ]]</h3><p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300">[[ selectedNotification?.message || '' ]]</p><div class="mt-3 text-xs text-neutral-500 space-y-1"><div><span class="font-semibold">Severity:</span> [[ selectedNotification?.severity ]]</div><div><span class="font-semibold">Borrower:</span> [[ selectedNotification?.borrower_name || '--' ]]</div><div><span class="font-semibold">Channel:</span> [[ selectedNotification?.channel || '--' ]]</div><div class="mono"><span class="font-semibold">Timestamp:</span> [[ selectedNotification?.timestamp || '--' ]]</div></div></div></div><div class="mt-5 flex justify-end gap-2"><button @click="closeNotificationModal" class="rounded-xl border px-4 py-2 text-sm font-semibold hover:bg-neutral-50 dark:border-neutral-700">Close</button><button @click="markNotificationRead" class="rounded-xl bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 dark:bg-white dark:text-neutral-900">Mark as viewed</button></div></div></div></transition>
+    <transition name="toast"><div v-if="showNotificationModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"><div class="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-neutral-900"><div class="flex items-start gap-3"><div class="flex h-10 w-10 items-center justify-center rounded-full" :class="selectedNotification?.severity === 'CRITICAL' ? 'bg-red-100 text-red-600' : selectedNotification?.severity === 'HIGH' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'"><svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div><div class="flex-1"><h3 class="text-base font-semibold">[[ notificationSummary(selectedNotification) ]]</h3><p class="mt-2 text-sm text-neutral-600 dark:text-neutral-300">[[ notificationBrief(selectedNotification) ]]</p><div class="mt-3 text-xs text-neutral-500 space-y-1"><div><span class="font-semibold">Severity:</span> [[ selectedNotification?.severity ]]</div><div><span class="font-semibold">Borrower:</span> [[ selectedNotification?.borrower_name || '--' ]]</div><div><span class="font-semibold">Channel:</span> [[ selectedNotification?.channel || '--' ]]</div><div class="mono"><span class="font-semibold">Timestamp:</span> [[ selectedNotification?.timestamp || '--' ]]</div></div><p v-if="selectedNotification?.alert_type === 'ANOMALY_DETECTED'" class="mt-3 text-xs text-blue-600 dark:text-blue-400">→ For full anomaly details, visit the <button @click="closeNotificationModal(); activeTab='anomalies'" class="underline font-semibold">Anomalies page</button></p></div></div><div class="mt-5 flex justify-end gap-2"><button @click="closeNotificationModal" class="rounded-xl border px-4 py-2 text-sm font-semibold hover:bg-neutral-50 dark:border-neutral-700">Close</button><button @click="markNotificationRead" class="rounded-xl bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 dark:bg-white dark:text-neutral-900">Mark as viewed</button></div></div></div></transition>
   </div>
 </div>
 
@@ -231,6 +442,8 @@
       const anomaliesTotal = ref(0);
       const anomaliesLimit = ref(20);
       const anomalyFilters = reactive({ severity: '', borrower_name: '', start_date: '', end_date: '' });
+      const showAnomalyModal = ref(false);
+      const selectedAnomaly = ref(null);
 
       // ----- Theme functions -----
       const applyTheme = (t) => { if (t === 'dark') document.documentElement.classList.add('dark'); else document.documentElement.classList.remove('dark'); };
@@ -296,13 +509,17 @@
         const high   = stats.value.high   ?? 0;
         const medium = stats.value.medium ?? 0;
         const low    = stats.value.low    ?? 0;
+        const filter = riskFilter.value;
+        const alphaHigh   = (filter === 'all' || filter === 'high')   ? 1 : 0.2;
+        const alphaMedium = (filter === 'all' || filter === 'medium') ? 1 : 0.2;
+        const alphaLow    = (filter === 'all' || filter === 'low')    ? 1 : 0.2;
         distChart = new Chart(ctx, {
           type: 'doughnut',
           data: {
             labels: ['High', 'Medium', 'Low'],
             datasets: [{
               data: [high, medium, low],
-              backgroundColor: ['#ef4444', '#f59e0b', '#10b981'],
+              backgroundColor: [`rgba(239,68,68,${alphaHigh})`, `rgba(245,158,11,${alphaMedium})`, `rgba(16,185,129,${alphaLow})`],
               borderWidth: 0,
               hoverOffset: 6,
             }]
@@ -431,13 +648,123 @@
         }, autoRefreshSeconds.value * 1000);
       };
 
+      // ----- Anomaly helpers -----
+      const parseAnomalyCodes = (msg) => {
+        if (!msg) return [];
+        const m = msg.match(/\(score [\d.]+\/100\):\s*([A-Z_,\s]+?)\.(?:\s|$)/);
+        if (!m) return [];
+        return m[1].split(',').map(s => s.trim()).filter(Boolean);
+      };
+      const parseAnomalyScore = (msg) => {
+        if (!msg) return '--';
+        const m = msg.match(/score ([\d.]+\/100)/);
+        return m ? m[1] : '--';
+      };
+      const formatAnomalyFailed = (msg) => {
+        if (!msg) return '';
+        const m = msg.match(/Failed areas:\s*(.+?)(?:;?\s*Passed areas:|$)/s);
+        if (!m) return '<span class="text-neutral-400">No failed area data</span>';
+        return m[1].split(';').map(s => s.trim()).filter(Boolean).map(s => `<div class="flex items-start gap-1.5 mb-1"><span class="text-red-500 mt-0.5">✕</span><span>${s}</span></div>`).join('');
+      };
+      const formatAnomalyPassed = (msg) => {
+        if (!msg) return '';
+        const m = msg.match(/Passed areas:\s*(.+?)$/s);
+        if (!m) return '<span class="text-neutral-400">No passed area data</span>';
+        return m[1].split(';').map(s => s.trim()).filter(Boolean).map(s => `<div class="flex items-start gap-1.5 mb-1"><span class="text-emerald-500 mt-0.5">✓</span><span>${s}</span></div>`).join('');
+      };
+      const openAnomalyDetail = (alert) => { selectedAnomaly.value = alert; showAnomalyModal.value = true; };
+      const closeAnomalyModal = () => { showAnomalyModal.value = false; selectedAnomaly.value = null; };
+
+      // ----- Notification display helpers -----
+      const notificationSummary = (alert) => {
+        if (!alert) return '';
+        const name = alert.borrower_name || 'Unknown';
+        if (alert.alert_type === 'ANOMALY_DETECTED') return `${name} triggered an anomaly`;
+        if (alert.alert_type === 'HIGH_RISK') return `${name} flagged as high risk`;
+        if (alert.alert_type === 'MEDIUM_RISK') return `${name} flagged as medium risk`;
+        if (alert.alert_type === 'NEW_USER_NOTIFICATION') return `New borrower: ${name}`;
+        return alert.alert_type?.replace(/_/g, ' ');
+      };
+      const notificationBrief = (alert) => {
+        if (!alert) return '';
+        if (alert.alert_type === 'ANOMALY_DETECTED') {
+          const codes = parseAnomalyCodes(alert.message);
+          const score = parseAnomalyScore(alert.message);
+          return codes.length ? `Anomaly score ${score} — ${codes.slice(0,2).join(', ')}${codes.length > 2 ? ` +${codes.length-2} more` : ''}` : 'Anomaly detected. See Anomalies page for details.';
+        }
+        const m = alert.message?.match(/score ([\d.]+\/100)/);
+        if (m) return `Risk score ${m[1]}`;
+        return alert.message?.substring(0, 80) + (alert.message?.length > 80 ? '...' : '');
+      };
+
+      // ----- Borrower profile charts -----
+      let borrowerCharts = {};
+      const renderBorrowerCharts = () => {
+        const b = profile.value.borrower;
+        const txs = profile.value.transactions || [];
+        if (!b) return;
+        // destroy old
+        Object.values(borrowerCharts).forEach(c => c?.destroy());
+        borrowerCharts = {};
+
+        const sorted = [...txs].sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+        const labels = sorted.map(t => t.timestamp?.slice(0,10) || '');
+        const riskScores = sorted.map(t => t.risk_score_after || 0);
+        const loanAmounts = sorted.map(t => t.amount || 0);
+
+        const chartDefaults = {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { x: { ticks: { maxTicksLimit: 5, font: { size: 9 } } }, y: { ticks: { font: { size: 9 } } } }
+        };
+
+        const riskCtx = document.getElementById('borrowerRiskChart-' + b.id);
+        if (riskCtx) {
+          borrowerCharts.risk = new Chart(riskCtx, {
+            type: 'line',
+            data: {
+              labels,
+              datasets: [{ data: riskScores, borderColor: '#ef4444', backgroundColor: 'rgba(239,68,68,0.08)', borderWidth: 2, tension: 0.4, fill: true, pointRadius: 2 }]
+            },
+            options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { min: 0, max: 100, ticks: { font: { size: 9 } } } } }
+          });
+        }
+
+        const loanCtx = document.getElementById('borrowerLoanChart-' + b.id);
+        if (loanCtx) {
+          borrowerCharts.loans = new Chart(loanCtx, {
+            type: 'bar',
+            data: {
+              labels,
+              datasets: [{ data: loanAmounts, backgroundColor: 'rgba(59,130,246,0.5)', borderColor: '#3b82f6', borderWidth: 1, borderRadius: 3 }]
+            },
+            options: chartDefaults
+          });
+        }
+
+        const approved = sorted.filter(t => t.status === 'approved').length;
+        const rejected = sorted.filter(t => t.status === 'rejected').length;
+        const other = sorted.length - approved - rejected;
+        const outcomeCtx = document.getElementById('borrowerOutcomeChart-' + b.id);
+        if (outcomeCtx) {
+          borrowerCharts.outcomes = new Chart(outcomeCtx, {
+            type: 'doughnut',
+            data: {
+              labels: ['Approved', 'Rejected', 'Other'],
+              datasets: [{ data: [approved, rejected, other], backgroundColor: ['#10b981', '#ef4444', '#6b7280'], borderWidth: 0 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 9 }, padding: 8 } } } }
+          });
+        }
+      };
+
       // ----- Anomalies -----
       async function loadAnomalies(page = 1) {
         anomaliesLoading.value = true;
         try {
-          const params = { ...anomalyFilters, limit: anomaliesLimit.value, offset: (page - 1) * anomaliesLimit.value };
+          const params = { ...anomalyFilters, alert_type: 'ANOMALY_DETECTED', limit: anomaliesLimit.value, offset: (page - 1) * anomaliesLimit.value };
           const { data } = await axios.get('/api/anomalies', { params });
-          anomaliesList.value = data.records;
+          anomaliesList.value = (data.records || []).filter(a => a.alert_type === 'ANOMALY_DETECTED');
           anomaliesTotal.value = data.total;
           anomaliesPage.value = page;
         } catch (err) {
@@ -464,6 +791,8 @@
         try {
           const { data } = await axios.get(`/api/borrowers/${borrowerId}`);
           profile.value = data;
+          await Vue.nextTick();
+          renderBorrowerCharts();
         } catch (err) {
           console.error('viewBorrowerProfile error:', err);
           profile.value = {};
@@ -478,6 +807,12 @@
           renderTrendChart(trendData.value);
           renderDistChart();
         }
+      });
+
+      // ----- riskFilter: reload applications + update dist chart -----
+      watch(riskFilter, () => {
+        loadApplications(1);
+        renderDistChart();
       });
 
       // ----- Auto-load anomalies tab on first visit -----
@@ -511,7 +846,10 @@
         refreshDashboard, isRefreshing, lastUpdated,
         autoRefreshEnabled, autoRefreshSeconds, autoRefreshOptions, toggleAutoRefresh,
         searchQuery, searchResults, searchPerformed, showProfileModal, profileLoading, profile, searchBorrowers, viewBorrowerProfile,
-        anomaliesList, anomaliesLoading, anomaliesPage, anomaliesTotal, anomaliesLimit, anomalyFilters, loadAnomalies
+        anomaliesList, anomaliesLoading, anomaliesPage, anomaliesTotal, anomaliesLimit, anomalyFilters, loadAnomalies,
+        showAnomalyModal, selectedAnomaly, openAnomalyDetail, closeAnomalyModal,
+        parseAnomalyCodes, parseAnomalyScore, formatAnomalyFailed, formatAnomalyPassed,
+        notificationSummary, notificationBrief
       };
     },
     delimiters: ['[[', ']]']
