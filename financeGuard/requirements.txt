@@ -1,7 +1,10 @@
-flask
+flask[async]
 flask-cors
 flask-migrate
 flask-mail
+flask-socketio
+python-socketio
+python-engineio
 python-dotenv
 pytest
 pytest-cov
@@ -13,5 +16,11 @@ pymysql
 pandas
 numpy
 scikit-learn
+openpyxl
+python-dateutil
+schedule
 # Database dependencies
 mysqlclient>=2.0.0
+# Real-time & async
+APScheduler
+python-dateutil

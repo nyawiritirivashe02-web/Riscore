@@ -412,11 +412,20 @@ const idNumberMismatchMessage = computed(() =>
             decision_status: data.decision_status,
             decision_reason: data.decision_reason,
             area_feedback: feedback,
-            // Also store the additional fields for display on risk-score page
             xai_explanation: data.xai_explanation,
             internal_anomaly: data.internal_anomaly_detection,
             merged_anomaly: data.anomaly_detection,
             credit_bureau: data.credit_bureau,
+            // ── Payslip data captured from OCR during the application ──────
+            payslip_data: {
+              name:        payslipName.value       || "",
+              salary:      form.salary             || 0,
+              national_id: idNumber.value          || "",
+              department:  payslipDepartment.value || "",
+              position:    payslipPosition.value   || "",
+            },
+            // ── MFI consortium + internal DB record returned by the API ───
+            mfi_details: data.mfi_details || null,
           };
           localStorage.setItem("financeGuard.lastAssessment", JSON.stringify(snapshot));
           window.location.href = "/risk-score";
